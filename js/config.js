@@ -5,7 +5,7 @@
 
 const ObraFacil = {
   // URL do backend (Apps Script)
-  SCRIPT_URL: https://script.google.com/macros/s/AKfycbywmiQ0oRzxExNDrjYaGxsF2__EVt9OnGUAEhLnYWlgqPsgw9urs9UhsYecpe1IepqTTQ/exec
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx5uFhWpZbwEEzMVqDNKoLIshNXHnMFx2c4SRJvTru81boScJdmyfLyrkEafE7OBSIgDA/exec',
 
   // Token de validação (deve bater com APP_TOKEN no Apps Script)
   APP_TOKEN: 'of_prod_2026_k9x',
