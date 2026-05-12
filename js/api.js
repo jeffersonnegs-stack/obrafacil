@@ -42,8 +42,8 @@ const Api = (() => {
       const resp = await fetch(url + '?dados=' + encodeURIComponent(JSON.stringify(payload)), {
   method: 'GET',
   redirect: 'follow',
+  mode: 'no-cors',
 });
-
       if (!resp.ok) {
         console.error('[Api] HTTP erro:', resp.status, resp.statusText);
         return {
