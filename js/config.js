@@ -8,7 +8,7 @@ const ObraFacil = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwvUvluA2sDbwXd-Dbik3j2TFGU0kbxPMxXfLJ0XS6du1gO3wQCkg8xZODMf9aZ3FF5HA/exec',
 
   // Token de validação (deve bater com APP_TOKEN no Apps Script)
-  APP_TOKEN: 'CONFIGURAR_NO_DEPLOY',
+  APP_TOKEN: 'of_prod_2026_k9x',
 
   // WhatsApp admin
   WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',
