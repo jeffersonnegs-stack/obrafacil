@@ -5,13 +5,13 @@
 
 const ObraFacil = {
   // URL do backend (Apps Script)
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbx5uFhWpZbwEEzMVqDNKoLIshNXHnMFx2c4SRJvTru81boScJdmyfLyrkEafE7OBSIgDA/exec',
+  SCRIPT_URL: 'CONFIGURAR_NO_DEPLOY',,
 
   // Token de validação (deve bater com APP_TOKEN no Apps Script)
-  APP_TOKEN: 'of_prod_2026_k9x',
+  APP_TOKEN: 'CONFIGURAR_NO_DEPLOY',
 
   // WhatsApp admin
-  WA_ADMIN: '5511971776347',
+  WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',
 
   // Sessão expira em 30 dias (ms)
   SESSION_TTL: 30 * 24 * 60 * 60 * 1000,
@@ -20,7 +20,7 @@ const ObraFacil = {
   SESSION_KEY: 'obrafacil_sessao_v2',
 
   // Versão do cache PWA — mude aqui a cada deploy
-  CACHE_VERSION: '2026-05-07-v1',
+  CACHE_VERSION: 'CONFIGURAR_NO_DEPLOY',
 };
 
 // Congela o objeto para evitar modificação acidental
