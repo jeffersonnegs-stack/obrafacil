@@ -39,12 +39,10 @@ const Api = (() => {
     };
 
     try {
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        redirect: 'follow',
-      });
+      const resp = await fetch(url + '?dados=' + encodeURIComponent(JSON.stringify(payload)), {
+  method: 'GET',
+  redirect: 'follow',
+});
 
       if (!resp.ok) {
         console.error('[Api] HTTP erro:', resp.status, resp.statusText);
