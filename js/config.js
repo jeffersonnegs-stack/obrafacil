@@ -5,7 +5,7 @@
 
 const ObraFacil = {
   // URL do backend (Apps Script)
-  SCRIPT_URL: 'CONFIGURAR_NO_DEPLOY',,
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzLZGB-oPKQjBn6U4oXrz8eAIqG03GDOfSda2qJ8pHwm3WrFxOlXVAr96wjSTwuW9leKw/exec',
 
   // Token de validação (deve bater com APP_TOKEN no Apps Script)
   APP_TOKEN: 'CONFIGURAR_NO_DEPLOY',
