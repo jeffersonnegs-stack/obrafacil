@@ -44,8 +44,7 @@ const Api = (() => {
   redirect: 'follow',
   mode: 'no-cors',
 });
-      return { sucesso: true, mensagem: 'Solicitação enviada com sucesso!' };
-
+      return { sucesso: true, mensagem: 'Solicitacao enviada! Em breve um profissional entrara em contato.' };
       try {
         return JSON.parse(texto);
       } catch (pe) {
