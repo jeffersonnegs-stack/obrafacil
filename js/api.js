@@ -1,14 +1,8 @@
 // ============================================================
 // ObraFácil — js/api.js
 // Camada de comunicação com o Google Apps Script
-//
-// Todas as chamadas ao backend passam por aqui.
-// O Apps Script recebe via doPost e roteia pela "acao".
 // ============================================================
-
 const Api = (() => {
-
-  // ── Sanitização básica contra XSS ────────────────────────
   function san(valor) {
     if (valor === null || valor === undefined) return '';
     return String(valor)
@@ -19,20 +13,16 @@ const Api = (() => {
       .replace(/'/g, '&#x27;');
   }
 
-  // ── Chamada principal ao backend ──────────────────────────
   async function chamar(acao, dados = {}) {
     const url = ObraFacil.SCRIPT_URL;
 
-    // Verifica se a URL foi configurada
     if (!url || url.includes('COLE_AQUI')) {
-      console.error('[Api] SCRIPT_URL não configurada em js/config.js');
       return {
         sucesso: false,
-        mensagem: 'Backend não configurado. Configure a URL do Apps Script em js/config.js'
+        mensagem: 'Backend não configurado.'
       };
     }
 
-    // Injeta token de segurança
     const payload = {
       acao,
       dados: { ...dados, _token: ObraFacil.APP_TOKEN }
@@ -40,31 +30,19 @@ const Api = (() => {
 
     try {
       const resp = await fetch(url, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload),
-  redirect: 'follow',
-});
-return await resp.json();
-      return { sucesso: true, mensagem: 'Solicitacao enviada! Em breve um profissional entrara em contato.' };
-      try {
-        return JSON.parse(texto);
-      } catch (pe) {
-        console.error('[Api] JSON inválido:', texto.substring(0, 200));
-        return { sucesso: false, mensagem: 'Resposta inválida do servidor.' };
-      }
-
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      return await resp.json();
     } catch (e) {
       console.error('[Api] Fetch error:', e.message);
-
-      // Distingue erro de rede de outros erros
       if (!navigator.onLine) {
-        return { sucesso: false, mensagem: 'Sem conexão com a internet. Verifique sua rede.' };
+        return { sucesso: false, mensagem: 'Sem conexão com a internet.' };
       }
       return { sucesso: false, mensagem: 'Erro de comunicação. Tente novamente.' };
     }
   }
 
   return { chamar, san };
-
 })();
