@@ -20,7 +20,7 @@ const ObraFacil = {
   SESSION_KEY: 'obrafacil_sessao_v2',
 
   // Versão do cache PWA — mude aqui a cada deploy
-  CACHE_VERSION: 'CONFIGURAR_NO_DEPLOY',
+  CACHE_VERSION: '2026-05-12-v1',
 };
 
 // Congela o objeto para evitar modificação acidental
