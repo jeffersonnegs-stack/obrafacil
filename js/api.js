@@ -39,11 +39,13 @@ const Api = (() => {
     };
 
     try {
-      const resp = await fetch(url + '?dados=' + encodeURIComponent(JSON.stringify(payload)), {
-  method: 'GET',
+      const resp = await fetch(url, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload),
   redirect: 'follow',
-  mode: 'no-cors',
 });
+return await resp.json();
       return { sucesso: true, mensagem: 'Solicitacao enviada! Em breve um profissional entrara em contato.' };
       try {
         return JSON.parse(texto);
