@@ -10,15 +10,13 @@
 // ============================================================
 
 // ⚠️ IMPORTANTE: mude esta versão a cada deploy para forçar atualização
-const CACHE_VERSION = '2026-05-14-v2';
+const CACHE_VERSION = '2026-05-14-v3';
 const CACHE_STATIC  = 'of-static-'  + CACHE_VERSION;
 const CACHE_PAGES   = 'of-pages-'   + CACHE_VERSION;
 
 // Arquivos que ficam em cache permanente (assets estáticos)
 const ASSETS_ESTATICOS = [
   'css/app.css',
-  'js/config.js',
-  'js/api.js',
   'js/auth.js',
   'js/ui.js',
   'js/app.js',
