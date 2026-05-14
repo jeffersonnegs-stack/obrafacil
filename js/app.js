@@ -556,10 +556,10 @@ const App = (() => {
 
   // â”€â”€ InicializaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function init() {
-    // Registra service worker
+   // Service worker desativado temporariamente
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(e => {
-        console.warn('[SW] Falha ao registrar:', e.message);
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(r => r.unregister());
       });
     }
 
