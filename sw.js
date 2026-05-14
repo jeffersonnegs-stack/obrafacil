@@ -10,7 +10,7 @@
 // ============================================================
 
 // ⚠️ IMPORTANTE: mude esta versão a cada deploy para forçar atualização
-const CACHE_VERSION = '2026-05-07-v1';
+const CACHE_VERSION = '2026-05-14-v2';
 const CACHE_STATIC  = 'of-static-'  + CACHE_VERSION;
 const CACHE_PAGES   = 'of-pages-'   + CACHE_VERSION;
 
