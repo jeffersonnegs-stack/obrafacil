@@ -1,28 +1,28 @@
 // ============================================================
-// ObraFÃ¡cil â€” app.js
-// LÃ³gica principal do aplicativo
-// CorreÃ§Ãµes aplicadas:
-//   âœ… Timers limpos corretamente em todas as situaÃ§Ãµes
-//   âœ… Sem duplo clique em botÃµes
-//   âœ… SanitizaÃ§Ã£o XSS em todos os renders
-//   âœ… Tratamento de erro em todas as chamadas
-//   âœ… Loading spinner na inicializaÃ§Ã£o
-//   âœ… SessÃ£o com expiraÃ§Ã£o via Auth module
+// ObraFácil — app.js
+// Lógica principal do aplicativo
+// Correções aplicadas:
+//   ✅ Timers limpos corretamente em todas as situações
+//   ✅ Sem duplo clique em botões
+//   ✅ Sanitização XSS em todos os renders
+//   ✅ Tratamento de erro em todas as chamadas
+//   ✅ Loading spinner na inicialização
+//   ✅ Sessão com expiração via Auth module
 // ============================================================
 
 const App = (() => {
 
-  // â”€â”€ Estado interno â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Estado interno ────────────────────────────────────────
   let _materialSelecionado = '';
   let _timersDeadline = {};
 
-  // â”€â”€ Limpar todos os timers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Limpar todos os timers ────────────────────────────────
   function _limparTimers() {
     Object.values(_timersDeadline).forEach(t => clearInterval(t));
     _timersDeadline = {};
   }
 
-  // â”€â”€ NavegaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Navegação ─────────────────────────────────────────────
   function irParaCliente() {
     UI.mostrarTela('tela-cliente');
     const params = new URLSearchParams(window.location.search);
@@ -39,7 +39,7 @@ const App = (() => {
     UI.mostrarTela('tela-selecao');
   }
 
-  // â”€â”€ FormulÃ¡rio cliente â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Formulário cliente ────────────────────────────────────
   function selecionarMaterial(valor) {
     _materialSelecionado = valor;
     document.getElementById('campo-material').value = valor;
@@ -73,7 +73,7 @@ const App = (() => {
 
     if (r.sucesso) {
       msgEl.className = 'msg-form ok';
-      msgEl.textContent = 'SolicitaÃ§Ã£o enviada! Em breve um profissional chamarÃ¡ no WhatsApp.';
+      msgEl.textContent = r.mensagem || 'Solicitação enviada! Em breve um profissional chamará no WhatsApp.';
       e.target.reset();
       _materialSelecionado = '';
       document.getElementById('btn-material-sim').className = 'opcao-btn';
@@ -85,7 +85,7 @@ const App = (() => {
     }
   }
 
-  // â”€â”€ Abas login/cadastro â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Abas login/cadastro ───────────────────────────────────
   function mostrarAba(aba) {
     const eLogin = aba === 'login';
     document.getElementById('form-login').style.display    = eLogin ? 'block' : 'none';
@@ -99,7 +99,7 @@ const App = (() => {
     document.getElementById('cad-ok').style.display        = 'none';
   }
 
-  // â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Login ─────────────────────────────────────────────────
   async function entrar() {
     const tel   = document.getElementById('inp-tel').value;
     const senha = document.getElementById('inp-senha').value;
@@ -107,7 +107,7 @@ const App = (() => {
     erroDiv.style.display = 'none';
 
     if (tel.replace(/\D/g, '').length < 10) {
-      erroDiv.textContent = 'Digite um nÃºmero de WhatsApp vÃ¡lido.';
+      erroDiv.textContent = 'Digite um número de WhatsApp válido.';
       erroDiv.style.display = 'block'; return;
     }
     if (!senha) {
@@ -139,7 +139,7 @@ const App = (() => {
     _iniciarPainel(r.profissional);
   }
 
-  // â”€â”€ Cadastro â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Cadastro ──────────────────────────────────────────────
   async function cadastrar() {
     const nome   = document.getElementById('cad-nome').value.trim();
     const tel    = document.getElementById('cad-tel').value.trim();
@@ -151,17 +151,16 @@ const App = (() => {
     const erroDiv = document.getElementById('cad-erro');
     erroDiv.style.display = 'none';
 
-    // ValidaÃ§Ãµes
     if (!nome || nome.length < 3) {
-      erroDiv.textContent = 'Digite seu nome completo (mÃ­nimo 3 caracteres).';
+      erroDiv.textContent = 'Digite seu nome completo (mínimo 3 caracteres).';
       erroDiv.style.display = 'block'; return;
     }
     if (tel.replace(/\D/g, '').length < 10) {
-      erroDiv.textContent = 'Digite um WhatsApp vÃ¡lido com DDD.';
+      erroDiv.textContent = 'Digite um WhatsApp válido com DDD.';
       erroDiv.style.display = 'block'; return;
     }
     if (!prof) {
-      erroDiv.textContent = 'Selecione sua profissÃ£o.';
+      erroDiv.textContent = 'Selecione sua profissão.';
       erroDiv.style.display = 'block'; return;
     }
     if (!cidade) {
@@ -173,7 +172,7 @@ const App = (() => {
       erroDiv.style.display = 'block'; return;
     }
     if (senha !== senha2) {
-      erroDiv.textContent = 'As senhas nÃ£o coincidem.';
+      erroDiv.textContent = 'As senhas não coincidem.';
       erroDiv.style.display = 'block'; return;
     }
 
@@ -191,29 +190,28 @@ const App = (() => {
       erroDiv.style.display = 'block'; return;
     }
 
-    // Mostra card de sucesso
     const primeiroNome = nome.split(' ')[0] || nome;
-    document.getElementById('pendente-icon').textContent  = 'âœ…';
+    document.getElementById('pendente-icon').textContent  = '✅';
     document.getElementById('pendente-titulo').textContent = 'Cadastro Ativo!';
     document.getElementById('pendente-msg').innerHTML =
-      'ðŸ—ï¸ <strong>Bem-vindo(a), ' + Api.san(primeiroNome) + '!</strong><br><br>'
-      + 'Seu acesso ao ObraFÃ¡cil estÃ¡ liberado.<br><br>'
-      + 'VocÃª tem serviÃ§os de <strong>' + Api.san(prof) + '</strong> em <strong>'
-      + Api.san(cidade) + '</strong> e jÃ¡ temos oportunidades aguardando!<br><br>'
-      + 'ðŸŽ <strong>3 crÃ©ditos de boas-vindas</strong> disponÃ­veis!';
+      '🏗️ <strong>Bem-vindo(a), ' + Api.san(primeiroNome) + '!</strong><br><br>'
+      + 'Seu acesso ao ObraFácil está liberado.<br><br>'
+      + 'Você tem serviços de <strong>' + Api.san(prof) + '</strong> em <strong>'
+      + Api.san(cidade) + '</strong> e já temos oportunidades aguardando!<br><br>'
+      + '🎁 <strong>3 créditos de boas-vindas</strong> disponíveis!';
 
     if (r.senha) {
       const boxAcesso = document.getElementById('pendente-acesso');
       boxAcesso.innerHTML =
-        'ðŸ”‘ <strong>Seus dados de acesso:</strong><br>'
+        '🔑 <strong>Seus dados de acesso:</strong><br>'
         + 'WhatsApp: <strong>' + Api.san(tel) + '</strong><br>'
         + 'Senha: <strong style="font-size:16px;color:#ff8c00">' + Api.san(r.senha) + '</strong><br><br>'
-        + 'âš ï¸ Guarde sua senha! VocÃª tambÃ©m a recebeu no WhatsApp.';
+        + '⚠️ Guarde sua senha! Você também a recebeu no WhatsApp.';
       boxAcesso.style.display = 'block';
     }
 
-    const msgWpp = 'OlÃ¡! Acabei de me cadastrar no ObraFÃ¡cil como ' + prof
-      + '.\nMeu nome: ' + nome + '.\nWhatsApp: ' + tel + '.\nQuero comeÃ§ar a usar!';
+    const msgWpp = 'Olá! Acabei de me cadastrar no ObraFácil como ' + prof
+      + '.\nMeu nome: ' + nome + '.\nWhatsApp: ' + tel + '.\nQuero começar a usar!';
     document.getElementById('wpp-pendente').href =
       'https://wa.me/' + ObraFacil.WA_ADMIN + '?text=' + encodeURIComponent(msgWpp);
 
@@ -221,7 +219,7 @@ const App = (() => {
     document.getElementById('card-pendente').style.display = 'block';
   }
 
-  // â”€â”€ Logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Logout ────────────────────────────────────────────────
   function sair() {
     _limparTimers();
     Auth.limpar();
@@ -232,13 +230,13 @@ const App = (() => {
     UI.mostrarTela('tela-selecao');
   }
 
-  // â”€â”€ Iniciar painel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Iniciar painel ────────────────────────────────────────
   function _iniciarPainel(prof) {
     document.getElementById('tela-selecao').style.display = 'none';
     document.getElementById('tela-prof').style.display    = 'none';
     document.getElementById('painel').classList.add('show');
     document.getElementById('bv-nome').textContent =
-      'OlÃ¡, ' + Api.san(prof.nome.split(' ')[0]) + '!';
+      'Olá, ' + Api.san(prof.nome.split(' ')[0]) + '!';
     _atualizarSaldoUI(prof.creditos, prof);
     carregarLeads();
   }
@@ -262,11 +260,11 @@ const App = (() => {
 
     if (prof) {
       document.getElementById('bv-prof').textContent =
-        Api.san(prof.profissao) + ' â€” ' + creditos + ' crÃ©ditos disponÃ­veis';
+        Api.san(prof.profissao) + ' — ' + creditos + ' créditos disponíveis';
     }
   }
 
-  // â”€â”€ Tabs do painel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Tabs do painel ────────────────────────────────────────
   function irTab(n) {
     ['tab-leads', 'tab-comprar', 'tab-historico'].forEach((id, i) => {
       document.getElementById(id).style.display = i === n ? 'block' : 'none';
@@ -277,7 +275,7 @@ const App = (() => {
     if (n === 2) carregarHistorico();
   }
 
-  // â”€â”€ Leads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Leads ─────────────────────────────────────────────────
   async function carregarLeads() {
     const prof = Auth.getProfissional();
     if (!prof || prof.creditos <= 0) return;
@@ -298,8 +296,8 @@ const App = (() => {
 
     if (!r.leads || !r.leads.length) {
       lista.innerHTML = '<div class="vazio">'
-        + '<div class="vazio-icon">ðŸ“­</div>'
-        + '<div class="vazio-titulo">Nenhum lead disponÃ­vel agora</div>'
+        + '<div class="vazio-icon">🔭</div>'
+        + '<div class="vazio-titulo">Nenhum lead disponível agora</div>'
         + '<div class="vazio-desc">Novos leads aparecem aqui assim que entram no sistema.</div></div>';
       return;
     }
@@ -315,21 +313,20 @@ const App = (() => {
   function _renderLead(lead) {
     const qtd = lead.qtdJaViram || 0;
 
-    // Lead jÃ¡ desbloqueado com contato
     if (lead.jaDesbloqueado && lead.contato) {
       const c = lead.contato;
       const telLimpo = Api.san(c.Telefone || '').replace(/\D/g, '');
-      const wppMsg = 'OlÃ¡ ' + (c.Nome||'') + '! Vi sua solicitaÃ§Ã£o de '
-        + (lead.tipoObra||'') + ' pelo ObraFÃ¡cil. Posso te ajudar!';
+      const wppMsg = 'Olá ' + (c.Nome||'') + '! Vi sua solicitação de '
+        + (lead.tipoObra||'') + ' pelo ObraFácil. Posso te ajudar!';
       return `
         <div class="lead-card desbloqueado" id="card-${Api.san(lead.id)}">
           <div class="lead-topo">
             <div class="lead-tipo">${Api.san(lead.tipoObra)}</div>
-            <div class="lead-badges"><span class="badge badge-desb">âœ… Desbloqueado</span></div>
+            <div class="lead-badges"><span class="badge badge-desb">✅ Desbloqueado</span></div>
           </div>
           <div class="lead-info">
-            <span>ðŸ“ ${Api.san(lead.cidade)}</span>
-            <span>ðŸ“… ${Api.san(lead.data)}</span>
+            <span>📍 ${Api.san(lead.cidade)}</span>
+            <span>📅 ${Api.san(lead.data)}</span>
           </div>
           ${lead.observacaoResumida ? `<div class="lead-obs">${Api.san(lead.observacaoResumida)}</div>` : ''}
           <div class="lead-contato">
@@ -345,7 +342,7 @@ const App = (() => {
             </div>
           </div>
           <div class="lead-footer">
-            <span class="lead-data">Contato jÃ¡ desbloqueado</span>
+            <span class="lead-data">Contato já desbloqueado</span>
             <a class="btn-whatsapp"
                href="https://wa.me/55${telLimpo}?text=${encodeURIComponent(wppMsg)}"
                target="_blank" rel="noopener">Abrir WhatsApp</a>
@@ -353,34 +350,32 @@ const App = (() => {
         </div>`;
     }
 
-    // Lead desbloqueado sem contato no payload
     if (lead.jaDesbloqueado) {
       return `
         <div class="lead-card desbloqueado" id="card-${Api.san(lead.id)}">
           <div class="lead-topo">
             <div class="lead-tipo">${Api.san(lead.tipoObra)}</div>
-            <div class="lead-badges"><span class="badge badge-desb">âœ… Desbloqueado</span></div>
+            <div class="lead-badges"><span class="badge badge-desb">✅ Desbloqueado</span></div>
           </div>
           <div class="lead-footer">
-            <span class="lead-data">Ver contato no HistÃ³rico</span>
+            <span class="lead-data">Ver contato no Histórico</span>
             <button class="btn-desbloquear" style="background:var(--verde)"
-              onclick="App.irTab(2)">Ver no HistÃ³rico</button>
+              onclick="App.irTab(2)">Ver no Histórico</button>
           </div>
         </div>`;
     }
 
-    // Badge de escassez
     let badgeEscassez = '';
     if (qtd === 0)      badgeEscassez = '<span class="badge" style="background:#e0f2fe;color:#0369a1">3 vagas</span>';
-    else if (qtd === 1) badgeEscassez = '<span class="badge badge-urgente">âš¡ 2 vagas restantes</span>';
-    else if (qtd === 2) badgeEscassez = '<span class="badge badge-quente">ðŸ”¥ ÃšLTIMA VAGA!</span>';
+    else if (qtd === 1) badgeEscassez = '<span class="badge badge-urgente">⚡ 2 vagas restantes</span>';
+    else if (qtd === 2) badgeEscassez = '<span class="badge badge-quente">🔥 ÚLTIMA VAGA!</span>';
 
     const timerHtml = lead.deadline
       ? `<span class="deadline-timer" id="timer-${Api.san(lead.id)}">Calculando...</span>` : '';
 
     let concorrencia = '';
-    if (qtd === 1) concorrencia = '<br><span class="concorrencia">1 profissional jÃ¡ desbloqueou</span>';
-    else if (qtd === 2) concorrencia = '<br><span class="concorrencia" style="color:var(--vermelho);font-weight:700">2 jÃ¡ desbloquearam â€” Ãºltima vaga!</span>';
+    if (qtd === 1) concorrencia = '<br><span class="concorrencia">1 profissional já desbloqueou</span>';
+    else if (qtd === 2) concorrencia = '<br><span class="concorrencia" style="color:var(--vermelho);font-weight:700">2 já desbloquearam — última vaga!</span>';
 
     return `
       <div class="lead-card" id="card-${Api.san(lead.id)}">
@@ -392,21 +387,21 @@ const App = (() => {
           </div>
         </div>
         <div class="lead-info">
-          <span>ðŸ“ ${Api.san(lead.cidade)}</span>
-          <span>ðŸ“… ${Api.san(lead.data)}</span>
+          <span>📍 ${Api.san(lead.cidade)}</span>
+          <span>📅 ${Api.san(lead.data)}</span>
         </div>
         ${lead.observacaoResumida ? `<div class="lead-obs">${Api.san(lead.observacaoResumida)}</div>` : ''}
         <div class="lead-footer">
           <div>${timerHtml}${concorrencia}</div>
           <button class="btn-desbloquear"
             onclick="App.desbloquear('${Api.san(lead.id)}', this)">
-            Desbloquear (1 crÃ©dito)
+            Desbloquear (1 crédito)
           </button>
         </div>
       </div>`;
   }
 
-  // â”€â”€ Timer de deadline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Timer de deadline ─────────────────────────────────────
   function _iniciarTimerDeadline(idLead, deadlineStr) {
     if (_timersDeadline[idLead]) clearInterval(_timersDeadline[idLead]);
     const deadline = new Date(deadlineStr).getTime();
@@ -432,7 +427,7 @@ const App = (() => {
     _timersDeadline[idLead] = setInterval(atualizar, 1000);
   }
 
-  // â”€â”€ Desbloquear lead â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Desbloquear lead ──────────────────────────────────────
   async function desbloquear(idLead, btn) {
     const prof = Auth.getProfissional();
     if (!prof || prof.creditos <= 0) {
@@ -454,7 +449,7 @@ const App = (() => {
         const card = document.getElementById('card-' + idLead);
         if (card) {
           card.innerHTML = '<div style="padding:12px;text-align:center;color:var(--vermelho);font-size:13px;font-weight:600">'
-            + 'ðŸ”´ Este lead foi esgotado. Verifique outros leads.</div>';
+            + '🔴 Este lead foi esgotado. Verifique outros leads.</div>';
           setTimeout(() => { if (card) card.style.display = 'none'; }, 3000);
         }
         UI.toast('Lead esgotado! Outro profissional chegou primeiro.', 'info');
@@ -479,8 +474,8 @@ const App = (() => {
     const card = document.getElementById('card-' + idLead);
     if (!card || !lead) return;
     const telLimpo = Api.san(lead.Telefone || '').replace(/\D/g, '');
-    const wppMsg = 'OlÃ¡ ' + (lead.Nome||'') + '! Vi sua solicitaÃ§Ã£o de '
-      + (lead.Tipo_Obra||'') + ' pelo ObraFÃ¡cil. Posso te ajudar!';
+    const wppMsg = 'Olá ' + (lead.Nome||'') + '! Vi sua solicitação de '
+      + (lead.Tipo_Obra||'') + ' pelo ObraFácil. Posso te ajudar!';
     card.classList.add('desbloqueado');
     card.innerHTML = `
       <div class="lead-topo">
@@ -488,8 +483,8 @@ const App = (() => {
         <div class="lead-badges"><span class="badge badge-desb">Desbloqueado</span></div>
       </div>
       <div class="lead-info">
-        <span>ðŸ“ ${Api.san(lead.Cidade || '')}</span>
-        <span>ðŸ“… ${Api.san(lead.Data_Entrada || '')}</span>
+        <span>📍 ${Api.san(lead.Cidade || '')}</span>
+        <span>📅 ${Api.san(lead.Data_Entrada || '')}</span>
       </div>
       ${lead.Observacoes ? `<div class="lead-obs">${Api.san(lead.Observacoes)}</div>` : ''}
       <div class="lead-contato">
@@ -512,14 +507,14 @@ const App = (() => {
       </div>`;
   }
 
-  // â”€â”€ Pacotes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Pacotes ───────────────────────────────────────────────
   function selecionarPacote(creditos, valor, el) {
     document.querySelectorAll('.pacote').forEach(p => p.style.borderColor = '');
     el.style.borderColor = 'var(--laranja)';
     const prof = Auth.getProfissional();
     document.getElementById('pix-detalhe').textContent =
-      creditos + ' crÃ©ditos por R$ ' + valor + ' â€” envie exatamente R$ ' + valor + ',00';
-    const wppMsg = 'OlÃ¡! Quero comprar o pacote de ' + creditos + ' crÃ©ditos por R$ ' + valor
+      creditos + ' créditos por R$ ' + valor + ' — envie exatamente R$ ' + valor + ',00';
+    const wppMsg = 'Olá! Quero comprar o pacote de ' + creditos + ' créditos por R$ ' + valor
       + '. Meu cadastro: ' + (prof ? prof.nome + ' (' + prof.id + ')' : '') + '. Segue o comprovante:';
     document.getElementById('pix-wpp').href =
       'https://wa.me/' + ObraFacil.WA_ADMIN + '?text=' + encodeURIComponent(wppMsg);
@@ -528,7 +523,7 @@ const App = (() => {
     box.scrollIntoView({ behavior: 'smooth' });
   }
 
-  // â”€â”€ HistÃ³rico â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Histórico ─────────────────────────────────────────────
   async function carregarHistorico() {
     const prof = Auth.getProfissional();
     if (!prof) return;
@@ -540,41 +535,36 @@ const App = (() => {
     if (!r.sucesso || !r.historico || !r.historico.length) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-titulo">Nenhum lead desbloqueado ainda</div>'
-        + '<div class="vazio-desc">Quando vocÃª desbloquear um lead, ele aparecerÃ¡ aqui.</div></div>';
+        + '<div class="vazio-desc">Quando você desbloquear um lead, ele aparecerá aqui.</div></div>';
       return;
     }
 
     lista.innerHTML = r.historico.map(h => `
       <div class="hist-item">
         <div class="hist-info">
-          <strong>${Api.san(h.tipoObra)} â€” ${Api.san(h.cidade)}</strong>
+          <strong>${Api.san(h.tipoObra)} — ${Api.san(h.cidade)}</strong>
           <span>${Api.san(h.nome)} | ${Api.san(h.telefone)}</span>
         </div>
         <div class="hist-data">${Api.san(h.data)}</div>
       </div>`).join('');
   }
 
-  // â”€â”€ InicializaÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Inicialização ─────────────────────────────────────────
   async function init() {
-   // Service worker desativado temporariamente
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
         registrations.forEach(r => r.unregister());
       });
     }
 
-    // Inicia banner offline
     UI.initOfflineBanner();
 
-    // Eventos do formulÃ¡rio
     document.getElementById('form-lead')
       .addEventListener('submit', enviarLead);
 
-    // Verifica sessÃ£o existente
     const sessao = Auth.carregar();
 
     if (sessao && sessao.id) {
-      // Atualiza saldo antes de mostrar o painel
       const r = await Api.chamar('getSaldoCreditos', { idProfissional: sessao.id });
       if (r.sucesso) {
         sessao.creditos = r.creditos;
@@ -595,7 +585,6 @@ const App = (() => {
     setTimeout(() => loading.style.display = 'none', 400);
   }
 
-  // ExpÃµe apenas o necessÃ¡rio para o HTML
   return {
     irParaCliente, irParaProfissional, voltarSelecao,
     selecionarMaterial, mostrarAba,
@@ -607,5 +596,4 @@ const App = (() => {
 
 })();
 
-// Inicia quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', App.init);
