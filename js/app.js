@@ -238,6 +238,7 @@ const App = (() => {
     document.getElementById('bv-nome').textContent =
       'Olá, ' + Api.san(prof.nome.split(' ')[0]) + '!';
     _atualizarSaldoUI(prof.creditos, prof);
+     irTab(0);
     carregarLeads();
   }
 
