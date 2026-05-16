@@ -2,8 +2,8 @@
   "name": "ObraFácil",
   "short_name": "ObraFácil",
   "description": "Conectando clientes a profissionais de obras em Itapetininga",
-  "start_url": "https://jeffersonnegs-stack.github.io/obrafacil-app/index.html",
-  "scope": "https://jeffersonnegs-stack.github.io/obrafacil-app/",
+  "start_url": "https://jeffersonnegs-stack.github.io/obrafacil/index.html",
+  "scope": "https://jeffersonnegs-stack.github.io/obrafacil/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0b1f33",
@@ -27,12 +27,12 @@
   "shortcuts": [
     {
       "name": "Sou Profissional",
-      "url": "https://jeffersonnegs-stack.github.io/obrafacil-app/index.html#profissional",
+      "url": "https://jeffersonnegs-stack.github.io/obrafacil/index.html#profissional",
       "description": "Acessar área do profissional"
     },
     {
       "name": "Preciso de uma obra",
-      "url": "https://jeffersonnegs-stack.github.io/obrafacil-app/index.html#cliente",
+      "url": "https://jeffersonnegs-stack.github.io/obrafacil/index.html#cliente",
       "description": "Solicitar orçamento"
     }
   ]
