@@ -302,7 +302,10 @@ const App = (() => {
       return;
     }
 
-    lista.innerHTML = r.leads.map(_renderLead).join('');
+    console.log('leads recebidos:', r.leads);
+const htmlGerado = r.leads.map(_renderLead).join('');
+console.log('html gerado:', htmlGerado);
+lista.innerHTML = htmlGerado;
     r.leads.forEach(lead => {
       if (lead.deadline && !lead.jaDesbloqueado) {
         _iniciarTimerDeadline(lead.id, lead.deadline);
