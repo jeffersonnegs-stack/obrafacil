@@ -279,12 +279,9 @@ const App = (() => {
   async function carregarLeads() {
     const prof = Auth.getProfissional();
     if (!prof || prof.creditos <= 0) return;
-
     const lista = document.getElementById('lista-leads');
     lista.innerHTML = '<div class="vazio"><div class="vazio-titulo">Buscando leads...</div></div>';
-
     const r = await Api.chamar('getLeadsDisponiveis', { idProfissional: prof.id });
-
     if (!r.sucesso) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-titulo">Erro ao buscar leads</div>'
@@ -293,7 +290,6 @@ const App = (() => {
         + 'onclick="App.carregarLeads()">Tentar novamente</button></div>';
       return;
     }
-
     if (!r.leads || !r.leads.length) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-icon">🔭</div>'
@@ -301,11 +297,12 @@ const App = (() => {
         + '<div class="vazio-desc">Novos leads aparecem aqui assim que entram no sistema.</div></div>';
       return;
     }
-
     console.log('leads recebidos:', r.leads);
-const htmlGerado = r.leads.map(_renderLead).join('');
-console.log('html gerado:', htmlGerado);
-lista.innerHTML = htmlGerado;
+    const htmlGerado = r.leads.map(_renderLead).join('');
+    console.log('html gerado:', htmlGerado);
+    lista.innerHTML = htmlGerado;
+    console.log('tab-leads display:', document.getElementById('tab-leads').style.display);
+    console.log('lista-leads display:', document.getElementById('lista-leads').style.display);
     r.leads.forEach(lead => {
       if (lead.deadline && !lead.jaDesbloqueado) {
         _iniciarTimerDeadline(lead.id, lead.deadline);
