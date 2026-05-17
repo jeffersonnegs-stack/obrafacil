@@ -393,12 +393,12 @@ let _installPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _installPrompt = e;
-  // Mostra o banner após 15 segundos
+  // Mostra o banner após 10 segundos
   setTimeout(() => {
     if (!localStorage.getItem('installDispensado')) {
       document.getElementById('banner-instalar').style.display = 'block';
     }
-  }, 150000);
+  }, 30000);
 });
 
 document.getElementById('btn-instalar').addEventListener('click', async () => {
