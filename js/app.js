@@ -43,10 +43,10 @@ const App = (() => {
   function selecionarMaterial(valor) {
     _materialSelecionado = valor;
     document.getElementById('campo-material').value = valor;
-    document.getElementById('btn-material-sim').className =
-      'opcao-btn' + (valor === 'Sim' ? ' sim' : '');
-    document.getElementById('btn-material-nao').className =
-      'opcao-btn' + (valor === 'Nao' ? ' nao' : '');
+    document.getElementById('btn-sim').className =
+      'opcao-btn' + (valor === 'Sim' ? ' selecionado-sim' : '');
+    document.getElementById('btn-nao').className =
+      'opcao-btn' + (valor === 'Nao' ? ' selecionado-nao' : '');
   }
 
   async function enviarLead(e) {
