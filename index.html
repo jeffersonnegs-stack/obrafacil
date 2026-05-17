@@ -66,13 +66,22 @@
 <div id="tela-cliente">
   <div class="card-form">
     <button class="btn-voltar" onclick="App.voltarSelecao()">← Voltar</button>
-    <div class="card-logo">ObraFácil</div>
-    <div class="card-slogan">Solicite seu orçamento</div>
-    <div class="destaque-material">
-      ObraFácil Itapê
-Conectamos você ao profissional certo.
-Preencha abaixo e receba orçamentos grátis.
-    </div>
+   <!-- 1. Título Principal (Logo) -->
+<div class="logo">ObraFácil</div>
+
+<!-- 2. Subtítulo com a Cidade (Logo abaixo da marca) -->
+<div class="slogan">Itapê</div>
+
+<!-- 3. Balão de Destaque (Sem o "Olá", focado na mensagem) -->
+<div class="destaque-material">
+  Conectamos você ao profissional certo<br>para a sua obra.
+</div>
+
+<!-- 4. Chamada de ação logo antes dos campos -->
+<div class="chamada-orcamento">
+  Solicite seu orçamento
+</div>
+
     <form id="form-lead" novalidate>
       <input type="hidden" name="origem" id="campo-origem" value="App">
       <div class="form-group">
