@@ -368,5 +368,54 @@
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 
+  <!-- Banner de instalação PWA -->
+<div id="banner-instalar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#0b1f33;color:#fff;padding:16px 20px;z-index:9999;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+  <div style="max-width:480px;margin:0 auto">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px">
+      📲 Instale o ObraFácil
+    </div>
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;line-height:1.5">
+      Acesse mais rápido direto da tela inicial do seu celular — sem precisar abrir o navegador.
+    </div>
+    <div style="display:flex;gap:10px">
+      <button id="btn-instalar" style="flex:1;padding:10px;background:#ff8c00;color:#fff;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">
+        Instalar agora
+      </button>
+      <button onclick="dispensarInstall()" style="padding:10px 16px;background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer">
+        Agora não
+      </button>
+    </div>
+  </div>
+</div>
+  <script>
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _installPrompt = e;
+  // Mostra o banner após 30 segundos
+  setTimeout(() => {
+    if (!localStorage.getItem('installDispensado')) {
+      document.getElementById('banner-instalar').style.display = 'block';
+    }
+  }, 30000);
+});
+
+document.getElementById('btn-instalar').addEventListener('click', async () => {
+  if (!_installPrompt) return;
+  _installPrompt.prompt();
+  const resultado = await _installPrompt.userChoice;
+  if (resultado.outcome === 'accepted') {
+    document.getElementById('banner-instalar').style.display = 'none';
+  }
+  _installPrompt = null;
+});
+
+function dispensarInstall() {
+  document.getElementById('banner-instalar').style.display = 'none';
+  localStorage.setItem('installDispensado', '1');
+}
+</script>
+
 </body>
 </html>
