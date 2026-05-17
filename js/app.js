@@ -40,7 +40,7 @@ const App = (() => {
   }
 
   // ── Formulário cliente ────────────────────────────────────
-  function selecionarMaterial(valor) {
+ function selecionarMaterial(valor) {
     _materialSelecionado = valor;
     document.getElementById('campo-material').value = valor;
     document.getElementById('btn-sim').className =
@@ -54,6 +54,22 @@ const App = (() => {
     const msgEl = document.getElementById('msg-cliente');
     msgEl.style.display = 'none';
 
+    // Validações
+    const nome = document.getElementById('cli-nome').value.trim();
+    const tel = document.getElementById('cli-tel').value.trim();
+
+    if (!nome || nome.length < 2) {
+      msgEl.className = 'msg-form erro';
+      msgEl.textContent = 'Por favor, preencha seu nome.';
+      msgEl.style.display = 'block';
+      return;
+    }
+    if (!tel || tel.replace(/\D/g, '').length < 10) {
+      msgEl.className = 'msg-form erro';
+      msgEl.textContent = 'Por favor, preencha um WhatsApp válido.';
+      msgEl.style.display = 'block';
+      return;
+    }
     if (!_materialSelecionado) {
       msgEl.className = 'msg-form erro';
       msgEl.textContent = 'Por favor, responda se vai comprar o material conosco.';
@@ -63,11 +79,8 @@ const App = (() => {
 
     const btn = document.getElementById('btn-enviar-lead');
     UI.btnLoading(btn, true);
-
     const dados = Object.fromEntries(new FormData(e.target));
-
     const r = await Api.chamar('adicionarLeadPublico', dados);
-
     UI.btnLoading(btn, false);
     msgEl.style.display = 'block';
 
@@ -76,8 +89,8 @@ const App = (() => {
       msgEl.textContent = r.mensagem || 'Solicitação enviada! Em breve um profissional chamará no WhatsApp.';
       e.target.reset();
       _materialSelecionado = '';
-      document.getElementById('btn-material-sim').className = 'opcao-btn';
-      document.getElementById('btn-material-nao').className = 'opcao-btn';
+      document.getElementById('btn-sim').className = 'opcao-btn';
+      document.getElementById('btn-nao').className = 'opcao-btn';
       document.getElementById('campo-material').value = '';
     } else {
       msgEl.className = 'msg-form erro';
