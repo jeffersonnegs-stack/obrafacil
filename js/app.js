@@ -464,7 +464,7 @@ const App = (() => {
         if (card) {
           card.innerHTML = '<div style="padding:12px;text-align:center;color:var(--vermelho);font-size:13px;font-weight:600">'
             + '🔴 Este lead foi esgotado. Verifique outros leads.</div>';
-          setTimeout(() => { if (card) card.style.display = 'none'; }, 1000);
+          setTimeout(() => { if (card) card.style.display = 'none'; }, 10000);
         }
         UI.toast('Lead esgotado! Outro profissional chegou primeiro.', 'info');
         return;
