@@ -605,6 +605,36 @@ const App = (() => {
     loading.classList.add('saindo');
     setTimeout(() => loading.style.display = 'none', 400);
   }
+  
+  function abrirEnvioFoto(idLead, tipoObra) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      UI.toast('Enviando foto...', 'info');
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const base64 = ev.target.result.split(',')[1];
+        const prof = Auth.getProfissional();
+        const r = await Api.chamar('uploadFotoObra', {
+          idProfissional: prof.id,
+          nomeObra: tipoObra,
+          foto: base64,
+          tipo: file.type
+        });
+        if (r.sucesso) {
+          UI.toast('Foto enviada com sucesso!', 'sucesso');
+        } else {
+          UI.toast(r.mensagem || 'Erro ao enviar foto.', 'erro');
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  }
 
   return {
     irParaCliente, irParaProfissional, voltarSelecao,
@@ -612,6 +642,7 @@ const App = (() => {
     entrar, cadastrar, sair,
     irTab, carregarLeads, desbloquear,
     selecionarPacote, carregarHistorico,
+    abrirEnvioFoto,
     init
   };
 
