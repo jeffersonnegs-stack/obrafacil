@@ -553,13 +553,20 @@ const App = (() => {
       return;
     }
 
-    lista.innerHTML = r.historico.map(h => `
+   lista.innerHTML = r.historico.map(h => `
       <div class="hist-item">
         <div class="hist-info">
           <strong>${Api.san(h.tipoObra)} — ${Api.san(h.cidade)}</strong>
           <span>${Api.san(h.nome)} | ${Api.san(h.telefone)}</span>
         </div>
-        <div class="hist-data">${Api.san(h.data)}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="hist-data">${Api.san(h.data)}</div>
+          <button
+            onclick="App.abrirEnvioFoto('${Api.san(h.idLead)}','${Api.san(h.tipoObra)}')"
+            style="background:none;border:1px solid #ff8c00;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:#ff8c00">
+            📷 Foto
+          </button>
+        </div>
       </div>`).join('');
   }
 
