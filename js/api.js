@@ -14,7 +14,7 @@ const Api = (() => {
   }
 
   async function chamar(acao, dados = {}) {
-    const consulta = acao === 'getSaldoCreditos' || acao === 'getHistoricoDesb';
+    const consulta = ['getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead'].includes(acao);
     if (!consulta && acao !== 'loginProfissional' && acao !== 'adicionarLeadPublico') {
       return { sucesso: false, mensagem: 'Operação indisponível nesta versão de teste.' };
     }
