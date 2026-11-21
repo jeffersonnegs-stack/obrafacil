@@ -14,6 +14,10 @@ const Api = (() => {
   }
 
   async function chamar(acao, dados = {}) {
+    if (acao !== 'adicionarLeadPublico') {
+      return { sucesso: false, mensagem: 'Operação indisponível nesta versão de teste.' };
+    }
+
     const url = ObraFacil.SCRIPT_URL;
 
     if (!url || url.includes('COLE_AQUI')) {
@@ -25,7 +29,7 @@ const Api = (() => {
 
     const payload = {
       acao,
-      dados: { ...dados, _token: ObraFacil.APP_TOKEN }
+      dados
     };
 
     try {
