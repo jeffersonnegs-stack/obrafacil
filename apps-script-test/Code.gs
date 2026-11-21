@@ -18,12 +18,15 @@ function doPost(e) {
     if (payload.acao === 'loginProfissional') {
       return response_(loginProfissionalTeste_(spreadsheetId, settings, data));
     }
-    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'getLeadsDisponiveis' || payload.acao === 'desbloquearLead') {
+    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'getLeadsDisponiveis' || payload.acao === 'desbloquearLead' || payload.acao === 'logoutProfissional') {
       const professionalId = identificarProfissional_(
         data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
       );
       if (!professionalId || (data.idProfissional != null && data.idProfissional !== professionalId)) {
         return response_({ sucesso: false, mensagem: 'Sessão inválida.' });
+      }
+      if (payload.acao === 'logoutProfissional') {
+        return response_({ sucesso: encerrarSessaoProfissional_(professionalId, data.sessao) });
       }
       return response_(consultarProfissionalTeste_(spreadsheetId, professionalId, payload.acao, data.idLead));
     }

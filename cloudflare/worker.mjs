@@ -59,7 +59,7 @@ export default {
 
     const action = body?.acao;
     const publicForm = action === 'adicionarLeadPublico';
-    const professionalRead = ['loginProfissional', 'getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead'].includes(action);
+    const professionalRead = ['loginProfissional', 'getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead', 'logoutProfissional'].includes(action);
     if (!publicForm && !(env.ENABLE_TEST_PROFESSIONAL === 'true' && professionalRead)) {
       return reply(403, 'Operação indisponível.', cors);
     }

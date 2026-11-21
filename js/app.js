@@ -243,7 +243,8 @@ const App = (() => {
   }
 
   // ── Logout ────────────────────────────────────────────────
-  function sair() {
+  async function sair() {
+    const logout = Auth.getProfissional()?.sessao ? Api.chamar('logoutProfissional') : null;
     _limparTimers();
     Auth.limpar();
     for (const id of ['lista-leads', 'lista-historico', 'bv-nome', 'bv-prof', 'hd-creditos']) {
@@ -254,6 +255,9 @@ const App = (() => {
     document.getElementById('inp-senha').value = '';
     mostrarAba('login');
     UI.mostrarTela('tela-selecao');
+    if (logout && !(await logout).sucesso && !Auth.getProfissional()) {
+      UI.toast('Painel fechado. A confirmação da saída no servidor falhou.', 'erro');
+    }
   }
 
   // ── Iniciar painel ────────────────────────────────────────

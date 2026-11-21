@@ -7,9 +7,18 @@ function emitirSessaoProfissional_(id, secret, now) {
   const payload = Utilities.base64EncodeWebSafe(JSON.stringify({
     aud: 'obrafacil-profissional',
     sub: id,
+    nonce: Utilities.getUuid(),
     exp: now + 30 * 60 * 1000,
   })).replace(/=+$/, '');
-  return payload + '.' + assinarSessao_(payload, secret);
+  const token = payload + '.' + assinarSessao_(payload, secret);
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) throw new Error('Sessão temporariamente indisponível.');
+  try {
+    PropertiesService.getScriptProperties().setProperty('active_session_' + id, fingerprintSessao_(token));
+  } finally {
+    lock.releaseLock();
+  }
+  return token;
 }
 
 function identificarProfissional_(token, secret, now) {
@@ -33,7 +42,8 @@ function identificarProfissional_(token, secret, now) {
         !Number.isSafeInteger(claims.exp) || claims.exp <= now) {
       return null;
     }
-    return claims.sub;
+    const active = PropertiesService.getScriptProperties().getProperty('active_session_' + claims.sub);
+    return active === fingerprintSessao_(token) ? claims.sub : null;
   } catch {
     return null;
   }
@@ -50,4 +60,21 @@ function chaveSessaoValida_(value) {
 function assinarSessao_(payload, secret) {
   return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(payload, secret))
     .replace(/=+$/, '');
+}
+
+function fingerprintSessao_(token) {
+  return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, token));
+}
+
+function encerrarSessaoProfissional_(id, token) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) return false;
+  try {
+    const key = 'active_session_' + id;
+    const settings = PropertiesService.getScriptProperties();
+    if (settings.getProperty(key) === fingerprintSessao_(token)) settings.deleteProperty(key);
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
 }
