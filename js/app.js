@@ -14,6 +14,7 @@ const App = (() => {
 
   // ── Estado interno ────────────────────────────────────────
   let _materialSelecionado = '';
+  let _enviandoLead = false;
   let _timersDeadline = {};
 
   // ── Limpar todos os timers ────────────────────────────────
@@ -51,6 +52,7 @@ const App = (() => {
 
   async function enviarLead(e) {
     e.preventDefault();
+    if (_enviandoLead) return;
     const msgEl = document.getElementById('msg-cliente');
     msgEl.style.display = 'none';
 
@@ -78,10 +80,18 @@ const App = (() => {
     }
 
     const btn = document.getElementById('btn-enviar-lead');
-    UI.btnLoading(btn, true);
-    const dados = Object.fromEntries(new FormData(e.target));
-    const r = await Api.chamar('adicionarLeadPublico', dados);
-    UI.btnLoading(btn, false);
+    _enviandoLead = true;
+    let r;
+    try {
+      UI.btnLoading(btn, true);
+      const dados = Object.fromEntries(new FormData(e.target));
+      r = await Api.chamar('adicionarLeadPublico', dados);
+    } catch {
+      r = { sucesso: false, mensagem: 'Erro ao enviar. Tente novamente.' };
+    } finally {
+      _enviandoLead = false;
+      UI.btnLoading(btn, false);
+    }
     msgEl.style.display = 'block';
 
     if (r.sucesso) {
