@@ -246,6 +246,9 @@ const App = (() => {
   function sair() {
     _limparTimers();
     Auth.limpar();
+    for (const id of ['lista-leads', 'lista-historico', 'bv-nome', 'bv-prof', 'hd-creditos']) {
+      document.getElementById(id).textContent = '';
+    }
     document.getElementById('painel').classList.remove('show');
     document.getElementById('inp-tel').value   = '';
     document.getElementById('inp-senha').value = '';
@@ -306,6 +309,7 @@ const App = (() => {
     const lista = document.getElementById('lista-leads');
     lista.innerHTML = '<div class="vazio"><div class="vazio-titulo">Buscando leads...</div></div>';
     const r = await Api.chamar('getLeadsDisponiveis', { idProfissional: prof.id });
+    if (Auth.getProfissional() !== prof) return;
     if (!r.sucesso) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-titulo">Erro ao buscar leads</div>'
@@ -466,6 +470,7 @@ const App = (() => {
     });
 
     UI.btnLoading(btn, false);
+    if (Auth.getProfissional() !== prof) return;
 
     if (!r.sucesso) {
       if (r.semCredito) { UI.abrirModal('modal-sem-cred'); return; }
@@ -556,6 +561,7 @@ const App = (() => {
     lista.innerHTML = '<div class="vazio"><div class="vazio-titulo">Buscando...</div></div>';
 
     const r = await Api.chamar('getHistoricoDesb', { idProfissional: prof.id });
+    if (Auth.getProfissional() !== prof) return;
 
     if (!r.sucesso || !r.historico || !r.historico.length) {
       lista.innerHTML = '<div class="vazio">'
