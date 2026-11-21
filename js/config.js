@@ -5,10 +5,7 @@
 
 const ObraFacil = {
   // URL do backend (Apps Script)
-  SCRIPT_URL: 'https://obrafacil-proxy.lopcos.workers.dev/',
-
-  // Token de validação (deve bater com APP_TOKEN no Apps Script)
-  APP_TOKEN: 'of_prod_2026_k9x',
+  SCRIPT_URL: '',
 
   // WhatsApp admin
   WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',
