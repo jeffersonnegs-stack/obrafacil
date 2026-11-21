@@ -14,7 +14,8 @@ const Api = (() => {
   }
 
   async function chamar(acao, dados = {}) {
-    if (acao !== 'adicionarLeadPublico') {
+    const consulta = acao === 'getSaldoCreditos' || acao === 'getHistoricoDesb';
+    if (!consulta && acao !== 'loginProfissional' && acao !== 'adicionarLeadPublico') {
       return { sucesso: false, mensagem: 'Operação indisponível nesta versão de teste.' };
     }
 
@@ -27,10 +28,9 @@ const Api = (() => {
       };
     }
 
-    const payload = {
-      acao,
-      dados
-    };
+    const sessao = consulta ? Auth.getProfissional()?.sessao : null;
+    if (consulta && !sessao) return { sucesso: false, mensagem: 'Entre novamente.' };
+    const payload = { acao, dados: consulta ? { ...dados, sessao } : dados };
 
     try {
       const resp = await fetch(url, {
