@@ -18,7 +18,7 @@ function doPost(e) {
     if (payload.acao === 'loginProfissional') {
       return response_(loginProfissionalTeste_(spreadsheetId, settings, data));
     }
-    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'desbloquearLead') {
+    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'getLeadsDisponiveis' || payload.acao === 'desbloquearLead') {
       const professionalId = identificarProfissional_(
         data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
       );
@@ -74,6 +74,15 @@ function consultarProfissionalTeste_(spreadsheetId, professionalId, action, lead
   const state = estadoProfissionalTeste_(book, professionalId);
   if (!state) return { sucesso: false, mensagem: 'Conta indisponível.' };
   if (action === 'getSaldoCreditos') return { sucesso: true, creditos: state.credits };
+  if (action === 'getLeadsDisponiveis') {
+    const orders = book.getSheetByName('Pedidos_Teste');
+    if (!orders) return { sucesso: false };
+    const unlockedIds = new Set(state.rows.map(row => row[1]));
+    const leads = orders.getDataRange().getValues().slice(1).filter(row =>
+      typeof row[1] === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(row[1]) && !unlockedIds.has(row[1])
+    ).map(row => ({ id: row[1], cidade: String(row[4] || ''), tipoObra: String(row[5] || '') }));
+    return { sucesso: true, leads };
+  }
   return { sucesso: true, historico: state.rows.map(contatoTeste_) };
 }
 
@@ -106,7 +115,7 @@ function desbloquearLeadTeste_(book, professionalId, leadId) {
     if (!state) return { sucesso: false, mensagem: 'Conta indisponível.' };
     const prior = state.rows.find(row => row[1] === leadId);
     if (prior) return { sucesso: true, creditos: state.credits, contato: contatoTeste_(prior) };
-    if (state.credits < 1) return { sucesso: false, mensagem: 'Saldo insuficiente.' };
+    if (state.credits < 1) return { sucesso: false, semCredito: true, mensagem: 'Saldo insuficiente.' };
 
     const pedidos = book.getSheetByName('Pedidos_Teste');
     const pedido = pedidos?.getDataRange().getValues().slice(1).find(row => row[1] === leadId);
