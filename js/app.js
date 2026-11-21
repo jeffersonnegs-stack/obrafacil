@@ -484,9 +484,15 @@ const App = (() => {
     }
 
     UI.toast(r.mensagem || 'Lead desbloqueado!', 'sucesso');
-    Auth.atualizarCreditos(r.creditosRestantes);
-    _atualizarSaldoUI(r.creditosRestantes);
-    _preencherContato(idLead, r.lead);
+    Auth.atualizarCreditos(r.creditos);
+    _atualizarSaldoUI(r.creditos);
+    _preencherContato(idLead, {
+      Nome: r.contato.nome,
+      Telefone: r.contato.telefone,
+      Tipo_Obra: r.contato.tipoObra,
+      Cidade: r.contato.cidade,
+      Data_Entrada: r.contato.data,
+    });
 
     if (_timersDeadline[idLead]) {
       clearInterval(_timersDeadline[idLead]);
