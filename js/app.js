@@ -541,13 +541,8 @@ const App = (() => {
   function selecionarPacote(creditos, valor, el) {
     document.querySelectorAll('.pacote').forEach(p => p.style.borderColor = '');
     el.style.borderColor = 'var(--laranja)';
-    const prof = Auth.getProfissional();
-    document.getElementById('pix-detalhe').textContent =
-      creditos + ' créditos por R$ ' + valor + ' — envie exatamente R$ ' + valor + ',00';
-    const wppMsg = 'Olá! Quero comprar o pacote de ' + creditos + ' créditos por R$ ' + valor
-      + '. Meu cadastro: ' + (prof ? prof.nome + ' (' + prof.id + ')' : '') + '. Segue o comprovante:';
-    document.getElementById('pix-wpp').href =
-      'https://wa.me/' + ObraFacil.WA_ADMIN + '?text=' + encodeURIComponent(wppMsg);
+    const preco = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    document.getElementById('pix-detalhe').textContent = creditos + ' créditos · ' + preco + ' (simulação)';
     const box = document.getElementById('pix-box');
     box.style.display = 'block';
     box.scrollIntoView({ behavior: 'smooth' });
