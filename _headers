@@ -1,0 +1,8 @@
+/*
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+https://obrafacil-previa.pages.dev/*
+  X-Robots-Tag: noindex
