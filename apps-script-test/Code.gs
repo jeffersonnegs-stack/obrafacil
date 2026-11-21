@@ -15,6 +15,9 @@ function doPost(e) {
       return response_({ sucesso: false });
     }
 
+    if (payload.acao === 'loginProfissional') {
+      return response_(loginProfissionalTeste_(spreadsheetId, settings, data));
+    }
     if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb') {
       const professionalId = identificarProfissional_(
         data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
@@ -83,6 +86,42 @@ function consultarProfissionalTeste_(spreadsheetId, professionalId, action) {
   if (!unlocked) return { sucesso: false };
   const historico = unlocked.getDataRange().getValues().slice(1)
     .filter(row => row[0] === professionalId)
-    .map(row => ({ idLead: String(row[1]), nomeCliente: String(row[2]), telefone: String(row[3]) }));
+    .map(row => ({ idLead: String(row[1]), nome: String(row[2]), telefone: String(row[3]), tipoObra: String(row[4] || ''), cidade: String(row[5] || ''), data: String(row[6] || '') }));
   return { sucesso: true, historico };
+}
+
+function loginProfissionalTeste_(spreadsheetId, settings, data) {
+  const rejected = { sucesso: false, mensagem: 'Credenciais de teste inválidas.' };
+  const sessionSecret = settings.getProperty('PROFESSIONAL_SESSION_SECRET');
+  if (!chaveSessaoValida_(sessionSecret) || typeof data.telefone !== 'string' ||
+      !/^\d{10,11}$/.test(data.telefone) || typeof data.senha !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(data.senha)) return rejected;
+
+  const accounts = SpreadsheetApp.openById(spreadsheetId).getSheetByName('Profissionais_Teste');
+  if (!accounts) return rejected;
+  const row = accounts.getDataRange().getValues().slice(1)
+    .find(entry => String(entry[3]) === data.telefone && entry[1] === true);
+  if (!row || !idProfissionalValido_(row[0]) ||
+      !Number.isSafeInteger(row[2]) || row[2] < 0) return rejected;
+
+  // Column E stores an HMAC of a random 256-bit test code. No human passwords.
+  const expected = assinarSessao_('test-login:' + row[0] + ':' + data.senha, sessionSecret);
+  const stored = String(row[4] || '');
+  if (stored.length !== expected.length) return rejected;
+  let difference = 0;
+  for (let i = 0; i < expected.length; i++) {
+    difference |= stored.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  if (difference !== 0) return rejected;
+
+  return {
+    sucesso: true,
+    profissional: {
+      id: row[0],
+      nome: String(row[5] || 'Profissional de teste'),
+      profissao: String(row[6] || 'Teste'),
+      creditos: row[2],
+      sessao: emitirSessaoProfissional_(row[0], sessionSecret, Date.now()),
+    },
+  };
 }
