@@ -11,9 +11,20 @@ function doPost(e) {
     if (!raw || raw.length > 16384) return response_({ sucesso: false });
     const payload = JSON.parse(raw);
     const data = payload?.dados;
-    if (payload?.acao !== 'adicionarLeadPublico' || data?._token !== secret) {
+    if (data?._token !== secret) {
       return response_({ sucesso: false });
     }
+
+    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb') {
+      const professionalId = identificarProfissional_(
+        data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
+      );
+      if (!professionalId || (data.idProfissional != null && data.idProfissional !== professionalId)) {
+        return response_({ sucesso: false, mensagem: 'Sessão inválida.' });
+      }
+      return response_(consultarProfissionalTeste_(spreadsheetId, professionalId, payload.acao));
+    }
+    if (payload.acao !== 'adicionarLeadPublico') return response_({ sucesso: false });
 
     const name = textField_(data.nome, 120);
     const phone = textField_(data.telefone, 24).replace(/\D/g, '');
@@ -51,4 +62,27 @@ function literal_(value) {
 function response_(payload) {
   return ContentService.createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function consultarProfissionalTeste_(spreadsheetId, professionalId, action) {
+  const book = SpreadsheetApp.openById(spreadsheetId);
+  const accounts = book.getSheetByName('Profissionais_Teste');
+  if (!accounts) return { sucesso: false };
+  const account = accounts.getDataRange().getValues().slice(1)
+    .find(row => row[0] === professionalId && row[1] === true);
+  if (!account) return { sucesso: false, mensagem: 'Conta indisponível.' };
+
+  if (action === 'getSaldoCreditos') {
+    const credits = account[2];
+    return Number.isSafeInteger(credits) && credits >= 0
+      ? { sucesso: true, creditos: credits }
+      : { sucesso: false };
+  }
+
+  const unlocked = book.getSheetByName('Contatos_Teste');
+  if (!unlocked) return { sucesso: false };
+  const historico = unlocked.getDataRange().getValues().slice(1)
+    .filter(row => row[0] === professionalId)
+    .map(row => ({ idLead: String(row[1]), nomeCliente: String(row[2]), telefone: String(row[3]) }));
+  return { sucesso: true, historico };
 }
