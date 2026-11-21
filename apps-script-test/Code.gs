@@ -18,14 +18,14 @@ function doPost(e) {
     if (payload.acao === 'loginProfissional') {
       return response_(loginProfissionalTeste_(spreadsheetId, settings, data));
     }
-    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb') {
+    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'desbloquearLead') {
       const professionalId = identificarProfissional_(
         data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
       );
       if (!professionalId || (data.idProfissional != null && data.idProfissional !== professionalId)) {
         return response_({ sucesso: false, mensagem: 'Sessão inválida.' });
       }
-      return response_(consultarProfissionalTeste_(spreadsheetId, professionalId, payload.acao));
+      return response_(consultarProfissionalTeste_(spreadsheetId, professionalId, payload.acao, data.idLead));
     }
     if (payload.acao !== 'adicionarLeadPublico') return response_({ sucesso: false });
 
@@ -67,27 +67,60 @@ function response_(payload) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function consultarProfissionalTeste_(spreadsheetId, professionalId, action) {
+function consultarProfissionalTeste_(spreadsheetId, professionalId, action, leadId) {
   const book = SpreadsheetApp.openById(spreadsheetId);
+  if (action === 'desbloquearLead') return desbloquearLeadTeste_(book, professionalId, leadId);
+
+  const state = estadoProfissionalTeste_(book, professionalId);
+  if (!state) return { sucesso: false, mensagem: 'Conta indisponível.' };
+  if (action === 'getSaldoCreditos') return { sucesso: true, creditos: state.credits };
+  return { sucesso: true, historico: state.rows.map(contatoTeste_) };
+}
+
+function estadoProfissionalTeste_(book, id) {
   const accounts = book.getSheetByName('Profissionais_Teste');
-  if (!accounts) return { sucesso: false };
+  const contacts = book.getSheetByName('Contatos_Teste');
+  if (!accounts || !contacts) return null;
   const account = accounts.getDataRange().getValues().slice(1)
-    .find(row => row[0] === professionalId && row[1] === true);
-  if (!account) return { sucesso: false, mensagem: 'Conta indisponível.' };
+    .find(row => row[0] === id && row[1] === true);
+  if (!account || !Number.isSafeInteger(account[2]) || account[2] < 0) return null;
+  const rows = contacts.getDataRange().getValues().slice(1).filter(row => row[0] === id);
+  const credits = account[2] - rows.filter(row => row[7] === 1).length;
+  if (credits < 0) return null;
+  return { contacts, rows, credits };
+}
 
-  if (action === 'getSaldoCreditos') {
-    const credits = account[2];
-    return Number.isSafeInteger(credits) && credits >= 0
-      ? { sucesso: true, creditos: credits }
-      : { sucesso: false };
+function contatoTeste_(row) {
+  return {
+    idLead: String(row[1]), nome: String(row[2]), telefone: String(row[3]),
+    tipoObra: String(row[4] || ''), cidade: String(row[5] || ''), data: String(row[6] || ''),
+  };
+}
+
+function desbloquearLeadTeste_(book, professionalId, leadId) {
+  if (typeof leadId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(leadId)) return { sucesso: false };
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) return { sucesso: false, mensagem: 'Tente novamente.' };
+  try {
+    const state = estadoProfissionalTeste_(book, professionalId);
+    if (!state) return { sucesso: false, mensagem: 'Conta indisponível.' };
+    const prior = state.rows.find(row => row[1] === leadId);
+    if (prior) return { sucesso: true, creditos: state.credits, contato: contatoTeste_(prior) };
+    if (state.credits < 1) return { sucesso: false, mensagem: 'Saldo insuficiente.' };
+
+    const pedidos = book.getSheetByName('Pedidos_Teste');
+    const pedido = pedidos?.getDataRange().getValues().slice(1).find(row => row[1] === leadId);
+    if (!pedido) return { sucesso: false, mensagem: 'Pedido indisponível.' };
+    const contactRow = [
+      professionalId, leadId, pedido[2], String(pedido[3]), pedido[5], pedido[4], new Date(), 1,
+    ];
+    // A single row records both access and its debit. Retrying finds that row.
+    state.contacts.appendRow(contactRow.map(value => typeof value === 'string' ? literal_(value) : value));
+    SpreadsheetApp.flush();
+    return { sucesso: true, creditos: state.credits - 1, contato: contatoTeste_(contactRow) };
+  } finally {
+    lock.releaseLock();
   }
-
-  const unlocked = book.getSheetByName('Contatos_Teste');
-  if (!unlocked) return { sucesso: false };
-  const historico = unlocked.getDataRange().getValues().slice(1)
-    .filter(row => row[0] === professionalId)
-    .map(row => ({ idLead: String(row[1]), nome: String(row[2]), telefone: String(row[3]), tipoObra: String(row[4] || ''), cidade: String(row[5] || ''), data: String(row[6] || '') }));
-  return { sucesso: true, historico };
 }
 
 function loginProfissionalTeste_(spreadsheetId, settings, data) {
@@ -114,13 +147,15 @@ function loginProfissionalTeste_(spreadsheetId, settings, data) {
   }
   if (difference !== 0) return rejected;
 
+  const state = estadoProfissionalTeste_(SpreadsheetApp.openById(spreadsheetId), row[0]);
+  if (!state) return rejected;
   return {
     sucesso: true,
     profissional: {
       id: row[0],
       nome: String(row[5] || 'Profissional de teste'),
       profissao: String(row[6] || 'Teste'),
-      creditos: row[2],
+      creditos: state.credits,
       sessao: emitirSessaoProfissional_(row[0], sessionSecret, Date.now()),
     },
   };
