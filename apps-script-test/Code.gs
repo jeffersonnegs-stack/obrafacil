@@ -94,8 +94,10 @@ function estadoProfissionalTeste_(book, id) {
     .find(row => row[0] === id && row[1] === true);
   if (!account || !Number.isSafeInteger(account[2]) || account[2] < 0) return null;
   const rows = contacts.getDataRange().getValues().slice(1).filter(row => row[0] === id);
-  const credits = account[2] - rows.filter(row => row[7] === 1).length;
-  if (credits < 0) return null;
+  const credited = creditosRecargaTeste_(book, id);
+  if (credited === null) return null;
+  const credits = account[2] + credited - rows.filter(row => row[7] === 1).length;
+  if (!Number.isSafeInteger(credits) || credits < 0) return null;
   return { contacts, rows, credits };
 }
 
@@ -168,4 +170,28 @@ function loginProfissionalTeste_(spreadsheetId, settings, data) {
       sessao: emitirSessaoProfissional_(row[0], sessionSecret, Date.now()),
     },
   };
+}
+
+function creditosRecargaTeste_(book, id) {
+  const sheet = book.getSheetByName('Recargas_Teste');
+  if (!sheet) return 0;
+  const payments = new Map();
+  for (const row of sheet.getDataRange().getValues().slice(1)) {
+    const [paymentId, professionalId, credits, approved] = row;
+    if (approved !== true) continue;
+    if (typeof paymentId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(paymentId) ||
+        !idProfissionalValido_(professionalId) || !Number.isSafeInteger(credits) || credits < 1) {
+      return null;
+    }
+    const existing = payments.get(paymentId);
+    if (existing && (existing.professionalId !== professionalId || existing.credits !== credits)) {
+      return null;
+    }
+    payments.set(paymentId, { professionalId, credits });
+  }
+  let total = 0;
+  for (const payment of payments.values()) {
+    if (payment.professionalId === id) total += payment.credits;
+  }
+  return Number.isSafeInteger(total) ? total : null;
 }
