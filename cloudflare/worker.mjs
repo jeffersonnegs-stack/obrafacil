@@ -59,7 +59,7 @@ export default {
 
     const action = body?.acao;
     const publicForm = action === 'adicionarLeadPublico';
-    const professionalRead = ['loginProfissional', 'getSaldoCreditos', 'getHistoricoDesb'].includes(action);
+    const professionalRead = ['loginProfissional', 'getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead'].includes(action);
     if (!publicForm && !(env.ENABLE_TEST_PROFESSIONAL === 'true' && professionalRead)) {
       return reply(403, 'Operação indisponível.', cors);
     }
@@ -83,6 +83,11 @@ export default {
       if (!upstream.ok) return reply(502, 'Falha ao registrar o pedido.', cors);
 
       const result = await upstream.json();
+      if (action === 'desbloquearLead' && result?.semCredito === true) {
+        return Response.json({ sucesso: false, semCredito: true, mensagem: 'Saldo insuficiente.' }, {
+          status: 422, headers: { ...cors, 'Cache-Control': 'no-store' },
+        });
+      }
       if (result?.sucesso !== true) return reply(422, publicForm ? 'Não foi possível registrar o pedido.' : 'Acesso indisponível. Confira a sessão ou o código de teste.', cors);
       return Response.json(publicForm ? { sucesso: true } : result, {
         headers: { ...cors, 'Cache-Control': 'no-store' },
