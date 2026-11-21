@@ -124,12 +124,12 @@ const App = (() => {
 
   // ── Login ─────────────────────────────────────────────────
   async function entrar() {
-    const tel   = document.getElementById('inp-tel').value;
+    const tel   = document.getElementById('inp-tel').value.replace(/\D/g, '');
     const senha = document.getElementById('inp-senha').value;
     const erroDiv = document.getElementById('login-erro');
     erroDiv.style.display = 'none';
 
-    if (tel.replace(/\D/g, '').length < 10) {
+    if (tel.length < 10 || tel.length > 11) {
       erroDiv.textContent = 'Digite um número de WhatsApp válido.';
       erroDiv.style.display = 'block'; return;
     }
