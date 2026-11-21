@@ -57,7 +57,12 @@ export default {
         : reply(400, 'Pedido inválido.', cors);
     }
 
-    if (body?.acao !== 'adicionarLeadPublico') return reply(403, 'Operação indisponível.', cors);
+    const action = body?.acao;
+    const publicForm = action === 'adicionarLeadPublico';
+    const professionalRead = ['loginProfissional', 'getSaldoCreditos', 'getHistoricoDesb'].includes(action);
+    if (!publicForm && !(env.ENABLE_TEST_PROFESSIONAL === 'true' && professionalRead)) {
+      return reply(403, 'Operação indisponível.', cors);
+    }
     if (!body.dados || typeof body.dados !== 'object' || Array.isArray(body.dados)) {
       return reply(400, 'Pedido inválido.', cors);
     }
@@ -70,7 +75,7 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          acao: 'adicionarLeadPublico',
+          acao: action,
           dados: { ...body.dados, _token: env.APPS_SCRIPT_TOKEN },
         }),
         signal: AbortSignal.timeout(15000),
@@ -78,8 +83,8 @@ export default {
       if (!upstream.ok) return reply(502, 'Falha ao registrar o pedido.', cors);
 
       const result = await upstream.json();
-      if (result?.sucesso !== true) return reply(422, 'Não foi possível registrar o pedido.', cors);
-      return Response.json({ sucesso: true }, {
+      if (result?.sucesso !== true) return reply(422, publicForm ? 'Não foi possível registrar o pedido.' : 'Acesso indisponível. Confira a sessão ou o código de teste.', cors);
+      return Response.json(publicForm ? { sucesso: true } : result, {
         headers: { ...cors, 'Cache-Control': 'no-store' },
       });
     } catch {
