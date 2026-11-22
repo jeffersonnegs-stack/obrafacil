@@ -78,15 +78,26 @@ export default {
     }
 
     try {
-      const upstream = await fetch(env.APPS_SCRIPT_URL, {
+      const signal = AbortSignal.timeout(15000);
+      let upstream = await fetch(env.APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           acao: action,
           dados: { ...body.dados, _token: env.APPS_SCRIPT_TOKEN },
         }),
-        signal: AbortSignal.timeout(15000),
+        redirect: 'manual',
+        signal,
       });
+      if ([301, 302, 303].includes(upstream.status)) {
+        const location = upstream.headers.get('Location');
+        const target = location ? new URL(location) : null;
+        if (!target || target.origin !== 'https://script.googleusercontent.com' ||
+            target.pathname !== '/macros/echo' || target.username || target.password) {
+          return reply(502, 'Resposta inesperada do servidor.', cors);
+        }
+        upstream = await fetch(target, { method: 'GET', redirect: 'error', signal });
+      }
       if (!upstream.ok) return reply(502, 'Falha ao registrar o pedido.', cors);
 
       const result = await upstream.json();
