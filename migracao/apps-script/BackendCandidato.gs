@@ -151,7 +151,7 @@ function loginProfissionalTeste_(spreadsheetId, settings, data) {
   if (!row || !idProfissionalValido_(row[0]) ||
       !Number.isSafeInteger(row[2]) || row[2] < 0) return rejected;
 
-  // Column E stores an HMAC of a random 256-bit test code. No human passwords.
+  // A credencial candidata é verificada por HMAC nas propriedades do projeto.
   const expected = assinarSessao_('test-login:' + row[0] + ':' + data.senha, sessionSecret);
   const stored = settings.getProperty('CANDIDATE_LOGIN_HASH_' + row[0]) || '';
   if (stored.length !== expected.length) return rejected;
@@ -274,6 +274,43 @@ function encerrarSessaoProfissional_(id, token) {
     const settings = PropertiesService.getScriptProperties();
     if (settings.getProperty(key) === fingerprintSessao_(token)) settings.deleteProperty(key);
     return true;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Execute manualmente no editor após salvar CANDIDATE_SETUP_CODE. */
+function prepararContaCandidata() {
+  const propriedades = PropertiesService.getScriptProperties();
+  const codigo = propriedades.getProperty('CANDIDATE_SETUP_CODE');
+  const segredo = propriedades.getProperty('PROFESSIONAL_SESSION_SECRET');
+  if (!/^[a-f0-9]{64}$/.test(codigo || '') || !chaveSessaoValida_(segredo)) {
+    throw new Error('Configure o código temporário e a chave de sessão.');
+  }
+  const id = 'CANDIDATA_HOMOLOGACAO_1';
+  const telefone = '15000000098';
+  const aba = SpreadsheetApp.openById('1WBgKH2wqRq6yO0jSvhS5ebuRtsMr9TPo2Br-st4AJmA')
+    .getSheetByName('Profissionais_Teste');
+  if (!aba) throw new Error('Aba de teste indisponível.');
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) throw new Error('Tente novamente.');
+  try {
+    const existente = aba.getDataRange().getValues().slice(1)
+      .find(linha => linha[0] === id || String(linha[3]) === telefone);
+    if (existente && (existente[0] !== id || String(existente[3]) !== telefone || existente[1] !== true)) {
+      throw new Error('Conta de teste em conflito.');
+    }
+    const chave = 'CANDIDATE_LOGIN_HASH_' + id;
+    const hash = assinarSessao_('test-login:' + id + ':' + codigo, segredo);
+    if (propriedades.getProperty(chave) && propriedades.getProperty(chave) !== hash) {
+      throw new Error('Esta conta já tem um código válido.');
+    }
+    if (!existente) {
+      aba.appendRow([id, true, 3, "'" + telefone, '', 'Profissional candidato', 'Pintura']);
+      SpreadsheetApp.flush();
+    }
+    propriedades.setProperty(chave, hash);
+    propriedades.deleteProperty('CANDIDATE_SETUP_CODE');
   } finally {
     lock.releaseLock();
   }
