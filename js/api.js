@@ -14,9 +14,9 @@ const Api = (() => {
   }
 
   async function chamar(acao, dados = {}) {
-    const consulta = ['getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead', 'logoutProfissional'].includes(acao);
-    if (!consulta && acao !== 'loginProfissional' && acao !== 'adicionarLeadPublico') {
-      return { sucesso: false, mensagem: 'Operação indisponível nesta versão de teste.' };
+    const consulta = ['getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead', 'logoutProfissional', 'uploadFotoObra'].includes(acao);
+    if (!consulta && acao !== 'loginProfissional' && acao !== 'adicionarLeadPublico' && acao !== 'solicitarCadastro') {
+      return { sucesso: false, mensagem: 'Operação indisponível.' };
     }
 
     const url = ObraFacil.SCRIPT_URL;

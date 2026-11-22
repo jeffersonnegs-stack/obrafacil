@@ -4,8 +4,8 @@
 // ============================================================
 
 const ObraFacil = {
-  // Worker isolado para pedidos fictícios deste branch
-  SCRIPT_URL: 'https://mute-waterfall-728e.lopcos.workers.dev/',
+  // Preencher com a URL do Worker candidato após provisionamento.
+  SCRIPT_URL: '',
 
   // WhatsApp admin
   WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',

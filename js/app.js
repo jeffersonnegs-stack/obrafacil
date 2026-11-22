@@ -213,25 +213,13 @@ const App = (() => {
       erroDiv.style.display = 'block'; return;
     }
 
-    const primeiroNome = nome.split(' ')[0] || nome;
-    document.getElementById('pendente-icon').textContent  = '✅';
-    document.getElementById('pendente-titulo').textContent = 'Cadastro Ativo!';
-    document.getElementById('pendente-msg').innerHTML =
-      '🏗️ <strong>Bem-vindo(a), ' + Api.san(primeiroNome) + '!</strong><br><br>'
-      + 'Seu acesso ao ObraFácil está liberado.<br><br>'
-      + 'Você tem serviços de <strong>' + Api.san(prof) + '</strong> em <strong>'
-      + Api.san(cidade) + '</strong> e já temos oportunidades aguardando!<br><br>'
-      + '🎁 <strong>3 créditos de boas-vindas</strong> disponíveis!';
-
-    if (r.senha) {
-      const boxAcesso = document.getElementById('pendente-acesso');
-      boxAcesso.innerHTML =
-        '🔑 <strong>Seus dados de acesso:</strong><br>'
-        + 'WhatsApp: <strong>' + Api.san(tel) + '</strong><br>'
-        + 'Senha: <strong style="font-size:16px;color:#ff8c00">' + Api.san(r.senha) + '</strong><br><br>'
-        + '⚠️ Guarde sua senha! Você também a recebeu no WhatsApp.';
-      boxAcesso.style.display = 'block';
-    }
+    document.getElementById('pendente-icon').textContent = '✅';
+    document.getElementById('pendente-titulo').textContent = 'Cadastro recebido';
+    document.getElementById('pendente-msg').textContent =
+      'Sua solicitação foi enviada. Você poderá entrar após a liberação do cadastro.';
+    const boxAcesso = document.getElementById('pendente-acesso');
+    boxAcesso.replaceChildren();
+    boxAcesso.style.display = 'none';
 
     const msgWpp = 'Olá! Acabei de me cadastrar no ObraFácil como ' + prof
       + '.\nMeu nome: ' + nome + '.\nWhatsApp: ' + tel + '.\nQuero começar a usar!';
@@ -584,6 +572,16 @@ const App = (() => {
           <div class="hist-data">${Api.san(h.data)}</div>
         </div>
       </div>`).join('');
+
+    lista.querySelectorAll('.hist-item').forEach((item, index) => {
+      const idLead = r.historico[index].idLead;
+      if (!idLead) return;
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.textContent = 'Enviar foto';
+      botao.addEventListener('click', () => abrirEnvioFoto(idLead));
+      item.append(botao);
+    });
   }
 
   // ── Inicialização ─────────────────────────────────────────
@@ -622,30 +620,29 @@ const App = (() => {
     setTimeout(() => loading.style.display = 'none', 400);
   }
   
-  function abrirEnvioFoto(idLead, tipoObra) {
+  function abrirEnvioFoto(idLead) {
+    const profissional = Auth.getProfissional();
+    if (!profissional?.sessao) return;
+
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/jpeg,image/png,image/webp';
     input.capture = 'environment';
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      UI.toast('Enviando foto...', 'info');
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file || Auth.getProfissional() !== profissional) return;
+      if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        UI.toast('Use uma foto JPEG, PNG ou WebP de até 2 MB.', 'erro');
+        return;
+      }
       const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const base64 = ev.target.result.split(',')[1];
-        const prof = Auth.getProfissional();
-        const r = await Api.chamar('uploadFotoObra', {
-          idProfissional: prof.id,
-          nomeObra: tipoObra,
-          foto: base64,
-          tipo: file.type
-        });
-        if (r.sucesso) {
-          UI.toast('Foto enviada com sucesso!', 'sucesso');
-        } else {
-          UI.toast(r.mensagem || 'Erro ao enviar foto.', 'erro');
-        }
+      reader.onerror = () => UI.toast('Não foi possível ler a foto.', 'erro');
+      reader.onload = async () => {
+        if (Auth.getProfissional() !== profissional) return;
+        const foto = String(reader.result).split(',')[1];
+        const result = await Api.chamar('uploadFotoObra', { idLead, foto, tipo: file.type });
+        if (Auth.getProfissional() !== profissional) return;
+        UI.toast(result.sucesso ? 'Foto enviada com sucesso!' : 'Não foi possível enviar a foto.', result.sucesso ? 'sucesso' : 'erro');
       };
       reader.readAsDataURL(file);
     };
