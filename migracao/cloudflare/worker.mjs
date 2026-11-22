@@ -98,7 +98,7 @@ export default {
           return reply(502, 'Resposta inesperada do servidor.', cors);
         }
         etapa = 'redirecionamento';
-        upstream = await fetch(target, { method: 'GET', redirect: 'error', signal });
+        upstream = await fetch(target.href, { method: 'GET', redirect: 'manual', signal });
       }
       if (!upstream.ok) return reply(502, 'Apps Script respondeu com HTTP ' + upstream.status + '.', cors);
 
@@ -113,8 +113,9 @@ export default {
       return Response.json(publicForm ? { sucesso: true } : result, {
         headers: { ...cors, 'Cache-Control': 'no-store' },
       });
-    } catch {
-      return reply(502, 'Falha no Apps Script durante: ' + etapa + '.', cors);
+    } catch (error) {
+      const tipo = ['AbortError', 'TimeoutError', 'TypeError', 'SyntaxError'].includes(error?.name) ? error.name : 'Error';
+      return reply(502, 'Falha no Apps Script durante: ' + etapa + ' (' + tipo + ').', cors);
     }
   },
 };
