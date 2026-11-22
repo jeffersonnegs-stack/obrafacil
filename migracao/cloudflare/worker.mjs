@@ -77,6 +77,7 @@ export default {
       return reply(503, 'Serviço indisponível.', cors);
     }
 
+    let etapa = 'conexao';
     try {
       const signal = AbortSignal.timeout(15000);
       let upstream = await fetch(env.APPS_SCRIPT_URL, {
@@ -96,10 +97,12 @@ export default {
             target.pathname !== '/macros/echo' || target.username || target.password) {
           return reply(502, 'Resposta inesperada do servidor.', cors);
         }
+        etapa = 'redirecionamento';
         upstream = await fetch(target, { method: 'GET', redirect: 'error', signal });
       }
-      if (!upstream.ok) return reply(502, 'Falha ao registrar o pedido.', cors);
+      if (!upstream.ok) return reply(502, 'Apps Script respondeu com HTTP ' + upstream.status + '.', cors);
 
+      etapa = 'formato da resposta';
       const result = await upstream.json();
       if (action === 'desbloquearLead' && result?.semCredito === true) {
         return Response.json({ sucesso: false, semCredito: true, mensagem: 'Saldo insuficiente.' }, {
@@ -111,7 +114,7 @@ export default {
         headers: { ...cors, 'Cache-Control': 'no-store' },
       });
     } catch {
-      return reply(502, 'Falha ao registrar o pedido.', cors);
+      return reply(502, 'Falha no Apps Script durante: ' + etapa + '.', cors);
     }
   },
 };
