@@ -1,16 +1,19 @@
+const CANDIDATE_SPREADSHEET_ID = '1WBgKH2wqRq6yO0jSvhS5ebuRtsMr9TPo2Br-st4AJmA';
+
 function doPost(e) {
   try {
     const settings = PropertiesService.getScriptProperties();
     const secret = settings.getProperty('APPS_SCRIPT_TOKEN');
-    const spreadsheetId = '1WBgKH2wqRq6yO0jSvhS5ebuRtsMr9TPo2Br-st4AJmA';
+    const spreadsheetId = CANDIDATE_SPREADSHEET_ID;
     if (!secret || !spreadsheetId) {
       return response_({ sucesso: false });
     }
 
     const raw = e?.postData?.contents;
-    if (!raw || raw.length > 16384) return response_({ sucesso: false });
+    if (!raw || raw.length > 3145728) return response_({ sucesso: false });
     const payload = JSON.parse(raw);
     const data = payload?.dados;
+    if (payload?.acao !== 'uploadFotoObra' && raw.length > 16384) return response_({ sucesso: false });
     if (data?._token !== secret) {
       return response_({ sucesso: false });
     }
@@ -18,12 +21,15 @@ function doPost(e) {
     if (payload.acao === 'loginProfissional') {
       return response_(loginProfissionalTeste_(spreadsheetId, settings, data));
     }
-    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'getLeadsDisponiveis' || payload.acao === 'desbloquearLead' || payload.acao === 'logoutProfissional') {
+    if (payload.acao === 'getSaldoCreditos' || payload.acao === 'getHistoricoDesb' || payload.acao === 'getLeadsDisponiveis' || payload.acao === 'desbloquearLead' || payload.acao === 'logoutProfissional' || payload.acao === 'uploadFotoObra') {
       const professionalId = identificarProfissional_(
         data.sessao, settings.getProperty('PROFESSIONAL_SESSION_SECRET'), Date.now()
       );
       if (!professionalId || (data.idProfissional != null && data.idProfissional !== professionalId)) {
         return response_({ sucesso: false, mensagem: 'Sessão inválida.' });
+      }
+      if (payload.acao === 'uploadFotoObra') {
+        return response_(salvarFotoPrivada_(professionalId, data));
       }
       if (payload.acao === 'logoutProfissional') {
         return response_({ sucesso: encerrarSessaoProfissional_(professionalId, data.sessao) });
@@ -314,4 +320,43 @@ function prepararContaCandidata() {
   } finally {
     lock.releaseLock();
   }
+}
+
+function salvarFotoPrivada_(profissionalId, dados) {
+  const tipos = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+  };
+  const extensao = Object.hasOwn(tipos, dados.tipo) ? tipos[dados.tipo] : null;
+  const foto = dados.foto;
+  const idLead = dados.idLead;
+  if (!extensao || typeof foto !== 'string' || foto.length > 2796204 ||
+      typeof idLead !== 'string' || !/^[\w-]{1,100}$/.test(idLead)) {
+    return { sucesso: false, mensagem: 'Foto ou obra inválida.' };
+  }
+
+  const historico = consultarProfissionalTeste_(CANDIDATE_SPREADSHEET_ID, profissionalId, 'getHistoricoDesb');
+  if (!historico.sucesso || !historico.historico.some(lead => lead.idLead === idLead)) {
+    return { sucesso: false, mensagem: 'Obra não disponível para esta conta.' };
+  }
+
+  const bytes = Utilities.base64Decode(foto);
+  if (!bytes.length || bytes.length > 2 * 1024 * 1024 || !assinaturaFotoValida_(bytes, extensao)) {
+    return { sucesso: false, mensagem: 'Conteúdo da foto inválido.' };
+  }
+
+  const pastaId = PropertiesService.getScriptProperties().getProperty('CANDIDATE_PHOTOS_FOLDER_ID');
+  if (!pastaId) return { sucesso: false, mensagem: 'Envio de fotos indisponível.' };
+  const nome = profissionalId + '_' + idLead + '_' + Utilities.getUuid() + '.' + extensao;
+  DriveApp.getFolderById(pastaId).createFile(Utilities.newBlob(bytes, dados.tipo, nome));
+  return { sucesso: true };
+}
+
+function assinaturaFotoValida_(bytes, extensao) {
+  const compara = (offset, prefixo) => bytes.length >= offset + prefixo.length &&
+    prefixo.every((byte, i) => (bytes[offset + i] & 255) === byte);
+  if (extensao === 'jpg') return compara(0, [255, 216, 255]);
+  if (extensao === 'png') return compara(0, [137, 80, 78, 71, 13, 10, 26, 10]);
+  return compara(0, [82, 73, 70, 70]) && compara(8, [87, 69, 66, 80]);
 }
