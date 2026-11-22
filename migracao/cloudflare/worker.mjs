@@ -1,5 +1,6 @@
 const MAX_BYTES = 16 * 1024;
 const MAX_PHOTO_REQUEST_BYTES = 3 * 1024 * 1024;
+const APPS_SCRIPT_EXEC_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
 
 function reply(status, message, headers = {}) {
   return Response.json({ sucesso: false, mensagem: message }, {
@@ -71,7 +72,8 @@ export default {
     if (!body.dados || typeof body.dados !== 'object' || Array.isArray(body.dados)) {
       return reply(400, 'Pedido inválido.', cors);
     }
-    if (!env.APPS_SCRIPT_URL || !env.APPS_SCRIPT_TOKEN) {
+    if (typeof env.APPS_SCRIPT_URL !== 'string' || !APPS_SCRIPT_EXEC_URL.test(env.APPS_SCRIPT_URL) ||
+        typeof env.APPS_SCRIPT_TOKEN !== 'string' || !/^[a-fA-F0-9]{64}$/.test(env.APPS_SCRIPT_TOKEN)) {
       return reply(503, 'Serviço indisponível.', cors);
     }
 
