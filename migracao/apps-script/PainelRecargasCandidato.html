@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font: 1rem system-ui; margin: 2rem auto; padding: 0 1rem; max-width: 30rem; }
+    label { display: block; margin: 1rem 0; }
+    input, button { font: inherit; padding: .5rem; }
+    input { display: block; margin-top: .25rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Recarga de teste</h1>
+    <p>Conta fictícia do ambiente candidato.</p>
+    <form>
+      <label>Referência de teste
+        <input name="referencia" value="TESTE-RECARGA-MANUAL-01" maxlength="66" required>
+      </label>
+      <label>Créditos
+        <input name="creditos" type="number" min="1" max="20" step="1" value="2" required>
+      </label>
+      <button type="submit">Registrar recarga fictícia</button>
+    </form>
+    <p role="status"></p>
+  </main>
+  <script>
+    const form = document.querySelector('form');
+    const button = form.querySelector('button');
+    const status = document.querySelector('[role="status"]');
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      button.disabled = true;
+      status.textContent = 'Verificando recarga…';
+      google.script.run.withSuccessHandler(resultado => {
+        button.disabled = false;
+        status.textContent = resultado.jaRegistrada
+          ? 'Recarga já registrada. O saldo foi preservado.'
+          : 'Recarga fictícia registrada.';
+      }).withFailureHandler(() => {
+        button.disabled = false;
+        status.textContent = 'Recarga recusada. Confira a referência e a quantidade.';
+      }).registrarRecargaManualCandidata(form.elements.referencia.value.trim(), form.elements.creditos.valueAsNumber);
+    });
+  </script>
+</body>
+</html>
