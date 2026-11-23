@@ -46,7 +46,7 @@ function doPost(event) {
       case 'uploadFotoObra':
         return _resposta(salvarFotoPrivada_(id, dados));
       case 'desbloquearLead':
-        return _resposta(desbloquearLead(id, dados.idLead));
+        return _resposta(normalizarDesbloqueioProducao_(desbloquearLead(id, dados.idLead), dados.idLead));
       default:
         return _resposta({ sucesso: false, mensagem: 'Ação indisponível.' });
     }
@@ -175,4 +175,24 @@ function assinaturaFotoValida_(bytes, extensao) {
   if (extensao === 'jpg') return compara(0, [255, 216, 255]);
   if (extensao === 'png') return compara(0, [137, 80, 78, 71, 13, 10, 26, 10]);
   return compara(0, [82, 73, 70, 70]) && compara(8, [87, 69, 66, 80]);
+}
+
+function normalizarDesbloqueioProducao_(resultado, idLead) {
+  if (!resultado?.sucesso || resultado.contato) return resultado;
+  const lead = resultado.lead;
+  if (!lead || !Number.isSafeInteger(resultado.creditosRestantes) || resultado.creditosRestantes < 0) {
+    return { sucesso: false, mensagem: 'Não foi possível confirmar o desbloqueio.' };
+  }
+  return {
+    sucesso: true,
+    creditos: resultado.creditosRestantes,
+    contato: {
+      idLead,
+      nome: String(lead.Nome ?? lead.nome ?? ''),
+      telefone: String(lead.Telefone ?? lead.telefone ?? ''),
+      tipoObra: String(lead.Tipo_Obra ?? lead.tipoObra ?? ''),
+      cidade: String(lead.Cidade ?? lead.cidade ?? ''),
+      data: String(lead.Data_Entrada ?? lead.data ?? ''),
+    },
+  };
 }
