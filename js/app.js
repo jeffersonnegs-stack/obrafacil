@@ -316,12 +316,11 @@ const App = (() => {
         + '<div class="vazio-desc">Novos leads aparecem aqui assim que entram no sistema.</div></div>';
       return;
     }
-    console.log('leads recebidos:', r.leads);
     const htmlGerado = r.leads.map(_renderLead).join('');
-    console.log('html gerado:', htmlGerado);
     lista.innerHTML = htmlGerado;
-    console.log('tab-leads display:', document.getElementById('tab-leads').style.display);
-    console.log('lista-leads display:', document.getElementById('lista-leads').style.display);
+    lista.querySelectorAll('button[data-lead-id]').forEach(botao => {
+      botao.addEventListener('click', () => desbloquear(botao.dataset.leadId, botao));
+    });
     r.leads.forEach(lead => {
       if (lead.deadline && !lead.jaDesbloqueado) {
         _iniciarTimerDeadline(lead.id, lead.deadline);
@@ -413,7 +412,7 @@ const App = (() => {
         <div class="lead-footer">
           <div>${timerHtml}${concorrencia}</div>
           <button class="btn-desbloquear"
-            onclick="App.desbloquear('${Api.san(lead.id)}', this)">
+            data-lead-id="${Api.san(lead.id)}">
             Desbloquear (1 crédito)
           </button>
         </div>
