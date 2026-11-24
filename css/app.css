@@ -408,4 +408,8 @@ html, body {
   .form-row     { grid-template-columns: 1fr; }
   .pacotes-grid { grid-template-columns: 1fr; }
   .opcoes-material { grid-template-columns: 1fr; }
+  .header { flex-wrap: wrap; gap: 8px 12px; }
+  .header-info { flex-wrap: wrap; }
+  .form-group input, .form-group select, .form-group textarea,
+  .login-input, .select-input { font-size: 16px; }
 }

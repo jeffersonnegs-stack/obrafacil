@@ -585,8 +585,8 @@ const App = (() => {
   // ── Inicialização ─────────────────────────────────────────
   async function init() {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(r => r.unregister());
+      navigator.serviceWorker.register('./sw-offline.js').catch(() => {
+        // A aplicação continua disponível pela rede sem o service worker.
       });
     }
 
