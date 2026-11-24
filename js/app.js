@@ -221,8 +221,7 @@ const App = (() => {
     boxAcesso.replaceChildren();
     boxAcesso.style.display = 'none';
 
-    const msgWpp = 'Olá! Acabei de me cadastrar no ObraFácil como ' + prof
-      + '.\nMeu nome: ' + nome + '.\nWhatsApp: ' + tel + '.\nQuero começar a usar!';
+    const msgWpp = 'Olá! Já enviei meu cadastro pelo ObraFácil e gostaria de saber como acompanhar a aprovação.';
     document.getElementById('wpp-pendente').href =
       'https://wa.me/' + ObraFacil.WA_ADMIN + '?text=' + encodeURIComponent(msgWpp);
 
