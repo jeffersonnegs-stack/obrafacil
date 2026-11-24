@@ -8,7 +8,7 @@ const ObraFacil = {
   SCRIPT_URL: 'https://obrafacil-proxy.lopcos.workers.dev/',
 
   // WhatsApp admin
-  WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',
+  WA_ADMIN: '5511971776347',
 
   // Sessão expira em 30 dias (ms)
   SESSION_TTL: 30 * 24 * 60 * 60 * 1000,
