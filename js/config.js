@@ -4,8 +4,8 @@
 // ============================================================
 
 const ObraFacil = {
-  // Worker da implantação candidata.
-  SCRIPT_URL: 'https://obrafacil-candidato.lopcos.workers.dev/',
+  // Worker oficial do Obra Fácil.
+  SCRIPT_URL: 'https://obrafacil-proxy.lopcos.workers.dev/',
 
   // WhatsApp admin
   WA_ADMIN: 'CONFIGURAR_NO_DEPLOY',
