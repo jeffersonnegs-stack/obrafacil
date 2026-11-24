@@ -14,6 +14,11 @@ const Api = (() => {
   }
 
   async function chamar(acao, dados = {}) {
+    const consulta = ['getSaldoCreditos', 'getHistoricoDesb', 'getLeadsDisponiveis', 'desbloquearLead', 'logoutProfissional', 'uploadFotoObra'].includes(acao);
+    if (!consulta && acao !== 'loginProfissional' && acao !== 'adicionarLeadPublico' && acao !== 'solicitarCadastro') {
+      return { sucesso: false, mensagem: 'Operação indisponível.' };
+    }
+
     const url = ObraFacil.SCRIPT_URL;
 
     if (!url || url.includes('COLE_AQUI')) {
@@ -23,10 +28,9 @@ const Api = (() => {
       };
     }
 
-    const payload = {
-      acao,
-      dados: { ...dados, _token: ObraFacil.APP_TOKEN }
-    };
+    const sessao = consulta ? Auth.getProfissional()?.sessao : null;
+    if (consulta && !sessao) return { sucesso: false, mensagem: 'Entre novamente.' };
+    const payload = { acao, dados: consulta ? { ...dados, sessao } : dados };
 
     try {
       const resp = await fetch(url, {

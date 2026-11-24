@@ -14,6 +14,7 @@ const App = (() => {
 
   // ── Estado interno ────────────────────────────────────────
   let _materialSelecionado = '';
+  let _enviandoLead = false;
   let _timersDeadline = {};
 
   // ── Limpar todos os timers ────────────────────────────────
@@ -51,6 +52,7 @@ const App = (() => {
 
   async function enviarLead(e) {
     e.preventDefault();
+    if (_enviandoLead) return;
     const msgEl = document.getElementById('msg-cliente');
     msgEl.style.display = 'none';
 
@@ -78,10 +80,18 @@ const App = (() => {
     }
 
     const btn = document.getElementById('btn-enviar-lead');
-    UI.btnLoading(btn, true);
-    const dados = Object.fromEntries(new FormData(e.target));
-    const r = await Api.chamar('adicionarLeadPublico', dados);
-    UI.btnLoading(btn, false);
+    _enviandoLead = true;
+    let r;
+    try {
+      UI.btnLoading(btn, true);
+      const dados = Object.fromEntries(new FormData(e.target));
+      r = await Api.chamar('adicionarLeadPublico', dados);
+    } catch {
+      r = { sucesso: false, mensagem: 'Erro ao enviar. Tente novamente.' };
+    } finally {
+      _enviandoLead = false;
+      UI.btnLoading(btn, false);
+    }
     msgEl.style.display = 'block';
 
     if (r.sucesso) {
@@ -114,12 +124,12 @@ const App = (() => {
 
   // ── Login ─────────────────────────────────────────────────
   async function entrar() {
-    const tel   = document.getElementById('inp-tel').value;
+    const tel   = document.getElementById('inp-tel').value.replace(/\D/g, '');
     const senha = document.getElementById('inp-senha').value;
     const erroDiv = document.getElementById('login-erro');
     erroDiv.style.display = 'none';
 
-    if (tel.replace(/\D/g, '').length < 10) {
+    if (tel.length < 10 || tel.length > 11) {
       erroDiv.textContent = 'Digite um número de WhatsApp válido.';
       erroDiv.style.display = 'block'; return;
     }
@@ -203,25 +213,13 @@ const App = (() => {
       erroDiv.style.display = 'block'; return;
     }
 
-    const primeiroNome = nome.split(' ')[0] || nome;
-    document.getElementById('pendente-icon').textContent  = '✅';
-    document.getElementById('pendente-titulo').textContent = 'Cadastro Ativo!';
-    document.getElementById('pendente-msg').innerHTML =
-      '🏗️ <strong>Bem-vindo(a), ' + Api.san(primeiroNome) + '!</strong><br><br>'
-      + 'Seu acesso ao ObraFácil está liberado.<br><br>'
-      + 'Você tem serviços de <strong>' + Api.san(prof) + '</strong> em <strong>'
-      + Api.san(cidade) + '</strong> e já temos oportunidades aguardando!<br><br>'
-      + '🎁 <strong>3 créditos de boas-vindas</strong> disponíveis!';
-
-    if (r.senha) {
-      const boxAcesso = document.getElementById('pendente-acesso');
-      boxAcesso.innerHTML =
-        '🔑 <strong>Seus dados de acesso:</strong><br>'
-        + 'WhatsApp: <strong>' + Api.san(tel) + '</strong><br>'
-        + 'Senha: <strong style="font-size:16px;color:#ff8c00">' + Api.san(r.senha) + '</strong><br><br>'
-        + '⚠️ Guarde sua senha! Você também a recebeu no WhatsApp.';
-      boxAcesso.style.display = 'block';
-    }
+    document.getElementById('pendente-icon').textContent = '✅';
+    document.getElementById('pendente-titulo').textContent = 'Cadastro recebido';
+    document.getElementById('pendente-msg').textContent =
+      'Sua solicitação foi enviada. Você poderá entrar após a liberação do cadastro.';
+    const boxAcesso = document.getElementById('pendente-acesso');
+    boxAcesso.replaceChildren();
+    boxAcesso.style.display = 'none';
 
     const msgWpp = 'Olá! Acabei de me cadastrar no ObraFácil como ' + prof
       + '.\nMeu nome: ' + nome + '.\nWhatsApp: ' + tel + '.\nQuero começar a usar!';
@@ -233,14 +231,21 @@ const App = (() => {
   }
 
   // ── Logout ────────────────────────────────────────────────
-  function sair() {
+  async function sair() {
+    const logout = Auth.getProfissional()?.sessao ? Api.chamar('logoutProfissional') : null;
     _limparTimers();
     Auth.limpar();
+    for (const id of ['lista-leads', 'lista-historico', 'bv-nome', 'bv-prof', 'hd-creditos']) {
+      document.getElementById(id).textContent = '';
+    }
     document.getElementById('painel').classList.remove('show');
     document.getElementById('inp-tel').value   = '';
     document.getElementById('inp-senha').value = '';
     mostrarAba('login');
     UI.mostrarTela('tela-selecao');
+    if (logout && !(await logout).sucesso && !Auth.getProfissional()) {
+      UI.toast('Painel fechado. A confirmação da saída no servidor falhou.', 'erro');
+    }
   }
 
   // ── Iniciar painel ────────────────────────────────────────
@@ -296,6 +301,7 @@ const App = (() => {
     const lista = document.getElementById('lista-leads');
     lista.innerHTML = '<div class="vazio"><div class="vazio-titulo">Buscando leads...</div></div>';
     const r = await Api.chamar('getLeadsDisponiveis', { idProfissional: prof.id });
+    if (Auth.getProfissional() !== prof) return;
     if (!r.sucesso) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-titulo">Erro ao buscar leads</div>'
@@ -456,6 +462,7 @@ const App = (() => {
     });
 
     UI.btnLoading(btn, false);
+    if (Auth.getProfissional() !== prof) return;
 
     if (!r.sucesso) {
       if (r.semCredito) { UI.abrirModal('modal-sem-cred'); return; }
@@ -474,9 +481,15 @@ const App = (() => {
     }
 
     UI.toast(r.mensagem || 'Lead desbloqueado!', 'sucesso');
-    Auth.atualizarCreditos(r.creditosRestantes);
-    _atualizarSaldoUI(r.creditosRestantes);
-    _preencherContato(idLead, r.lead);
+    Auth.atualizarCreditos(r.creditos);
+    _atualizarSaldoUI(r.creditos);
+    _preencherContato(idLead, {
+      Nome: r.contato.nome,
+      Telefone: r.contato.telefone,
+      Tipo_Obra: r.contato.tipoObra,
+      Cidade: r.contato.cidade,
+      Data_Entrada: r.contato.data,
+    });
 
     if (_timersDeadline[idLead]) {
       clearInterval(_timersDeadline[idLead]);
@@ -525,13 +538,8 @@ const App = (() => {
   function selecionarPacote(creditos, valor, el) {
     document.querySelectorAll('.pacote').forEach(p => p.style.borderColor = '');
     el.style.borderColor = 'var(--laranja)';
-    const prof = Auth.getProfissional();
-    document.getElementById('pix-detalhe').textContent =
-      creditos + ' créditos por R$ ' + valor + ' — envie exatamente R$ ' + valor + ',00';
-    const wppMsg = 'Olá! Quero comprar o pacote de ' + creditos + ' créditos por R$ ' + valor
-      + '. Meu cadastro: ' + (prof ? prof.nome + ' (' + prof.id + ')' : '') + '. Segue o comprovante:';
-    document.getElementById('pix-wpp').href =
-      'https://wa.me/' + ObraFacil.WA_ADMIN + '?text=' + encodeURIComponent(wppMsg);
+    const preco = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+    document.getElementById('pix-detalhe').textContent = creditos + ' créditos · ' + preco + ' (simulação)';
     const box = document.getElementById('pix-box');
     box.style.display = 'block';
     box.scrollIntoView({ behavior: 'smooth' });
@@ -545,6 +553,7 @@ const App = (() => {
     lista.innerHTML = '<div class="vazio"><div class="vazio-titulo">Buscando...</div></div>';
 
     const r = await Api.chamar('getHistoricoDesb', { idProfissional: prof.id });
+    if (Auth.getProfissional() !== prof) return;
 
     if (!r.sucesso || !r.historico || !r.historico.length) {
       lista.innerHTML = '<div class="vazio">'
@@ -561,13 +570,18 @@ const App = (() => {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <div class="hist-data">${Api.san(h.data)}</div>
-          <button
-            onclick="App.abrirEnvioFoto('${Api.san(h.idLead)}','${Api.san(h.tipoObra)}')"
-            style="background:none;border:1px solid #ff8c00;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:#ff8c00">
-            📷 Foto
-          </button>
         </div>
       </div>`).join('');
+
+    lista.querySelectorAll('.hist-item').forEach((item, index) => {
+      const idLead = r.historico[index].idLead;
+      if (!idLead) return;
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.textContent = 'Enviar foto';
+      botao.addEventListener('click', () => abrirEnvioFoto(idLead));
+      item.append(botao);
+    });
   }
 
   // ── Inicialização ─────────────────────────────────────────
@@ -606,30 +620,29 @@ const App = (() => {
     setTimeout(() => loading.style.display = 'none', 400);
   }
   
-  function abrirEnvioFoto(idLead, tipoObra) {
+  function abrirEnvioFoto(idLead) {
+    const profissional = Auth.getProfissional();
+    if (!profissional?.sessao) return;
+
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/jpeg,image/png,image/webp';
     input.capture = 'environment';
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      UI.toast('Enviando foto...', 'info');
+    input.onchange = () => {
+      const file = input.files[0];
+      if (!file || Auth.getProfissional() !== profissional) return;
+      if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        UI.toast('Use uma foto JPEG, PNG ou WebP de até 2 MB.', 'erro');
+        return;
+      }
       const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const base64 = ev.target.result.split(',')[1];
-        const prof = Auth.getProfissional();
-        const r = await Api.chamar('uploadFotoObra', {
-          idProfissional: prof.id,
-          nomeObra: tipoObra,
-          foto: base64,
-          tipo: file.type
-        });
-        if (r.sucesso) {
-          UI.toast('Foto enviada com sucesso!', 'sucesso');
-        } else {
-          UI.toast(r.mensagem || 'Erro ao enviar foto.', 'erro');
-        }
+      reader.onerror = () => UI.toast('Não foi possível ler a foto.', 'erro');
+      reader.onload = async () => {
+        if (Auth.getProfissional() !== profissional) return;
+        const foto = String(reader.result).split(',')[1];
+        const result = await Api.chamar('uploadFotoObra', { idLead, foto, tipo: file.type });
+        if (Auth.getProfissional() !== profissional) return;
+        UI.toast(result.sucesso ? 'Foto enviada com sucesso!' : 'Não foi possível enviar a foto.', result.sucesso ? 'sucesso' : 'erro');
       };
       reader.readAsDataURL(file);
     };
