@@ -618,6 +618,36 @@ const App = (() => {
     setTimeout(() => loading.style.display = 'none', 400);
   }
   
+  async function prepararFoto(file) {
+    const limiteEnvio = 2 * 1024 * 1024;
+    if (file.size <= limiteEnvio) return file;
+
+    const url = URL.createObjectURL(file);
+    const imagem = new Image();
+    const canvas = document.createElement('canvas');
+    try {
+      imagem.src = url;
+      await imagem.decode();
+      const escala = Math.min(1, 1600 / Math.max(imagem.width, imagem.height));
+      canvas.width = Math.max(1, Math.round(imagem.width * escala));
+      canvas.height = Math.max(1, Math.round(imagem.height * escala));
+      const contexto = canvas.getContext('2d');
+      contexto.fillStyle = '#fff';
+      contexto.fillRect(0, 0, canvas.width, canvas.height);
+      contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
+
+      for (const qualidade of [0.82, 0.65, 0.45]) {
+        const foto = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', qualidade));
+        if (foto?.size && foto.size <= limiteEnvio) return foto;
+      }
+      throw new Error('Foto excede o limite de envio');
+    } finally {
+      canvas.width = 0;
+      canvas.height = 0;
+      URL.revokeObjectURL(url);
+    }
+  }
+
   function abrirEnvioFoto(idLead) {
     const profissional = Auth.getProfissional();
     if (!profissional?.sessao) return;
@@ -625,23 +655,33 @@ const App = (() => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/jpeg,image/png,image/webp';
-    input.onchange = () => {
+    input.onchange = async () => {
       const file = input.files[0];
       if (!file || Auth.getProfissional() !== profissional) return;
-      if (file.size > 2 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        UI.toast('Use uma foto JPEG, PNG ou WebP de até 2 MB.', 'erro');
+      if (file.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        UI.toast('Use uma foto JPEG, PNG ou WebP de até 5 MB.', 'erro');
         return;
       }
+
+      let imagem;
+      try {
+        imagem = await prepararFoto(file);
+      } catch {
+        UI.toast('Não foi possível preparar a foto. Tente uma imagem menor.', 'erro');
+        return;
+      }
+      if (Auth.getProfissional() !== profissional) return;
+
       const reader = new FileReader();
       reader.onerror = () => UI.toast('Não foi possível ler a foto.', 'erro');
       reader.onload = async () => {
         if (Auth.getProfissional() !== profissional) return;
         const foto = String(reader.result).split(',')[1];
-        const result = await Api.chamar('uploadFotoObra', { idLead, foto, tipo: file.type });
+        const result = await Api.chamar('uploadFotoObra', { idLead, foto, tipo: imagem.type });
         if (Auth.getProfissional() !== profissional) return;
         UI.toast(result.sucesso ? 'Foto enviada com sucesso!' : 'Não foi possível enviar a foto.', result.sucesso ? 'sucesso' : 'erro');
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(imagem);
     };
     input.click();
   }
