@@ -625,7 +625,6 @@ const App = (() => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/jpeg,image/png,image/webp';
-    input.capture = 'environment';
     input.onchange = () => {
       const file = input.files[0];
       if (!file || Auth.getProfissional() !== profissional) return;
