@@ -255,7 +255,7 @@ const App = (() => {
     document.getElementById('bv-nome').textContent =
       'Olá, ' + Api.san(prof.nome.split(' ')[0]) + '!';
     _atualizarSaldoUI(prof.creditos, prof);
-     irTab(0);
+    irTab(prof.creditos <= 0 ? 2 : 0);
     carregarLeads();
   }
 
@@ -493,6 +493,7 @@ const App = (() => {
       clearInterval(_timersDeadline[idLead]);
       delete _timersDeadline[idLead];
     }
+    if (r.creditos === 0) irTab(2);
   }
 
   function _preencherContato(idLead, lead) {
@@ -553,7 +554,15 @@ const App = (() => {
     const r = await Api.chamar('getHistoricoDesb', { idProfissional: prof.id });
     if (Auth.getProfissional() !== prof) return;
 
-    if (!r.sucesso || !r.historico || !r.historico.length) {
+    if (!r.sucesso || !Array.isArray(r.historico)) {
+      lista.innerHTML = '<div class="vazio">'
+        + '<div class="vazio-titulo">Não foi possível carregar o Histórico</div>'
+        + '<button type="button" class="btn-secundario">Tentar novamente</button></div>';
+      lista.querySelector('button').addEventListener('click', carregarHistorico);
+      return;
+    }
+
+    if (!r.historico.length) {
       lista.innerHTML = '<div class="vazio">'
         + '<div class="vazio-titulo">Nenhum lead desbloqueado ainda</div>'
         + '<div class="vazio-desc">Quando você desbloquear um lead, ele aparecerá aqui.</div></div>';
