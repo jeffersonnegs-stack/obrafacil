@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 const API = 'https://api.mercadopago.com/v1/orders';
 
 export function criarRecargaTeste({ token, requisitar }) {
-  if (!token?.startsWith('TEST-')) throw new Error('Use uma credencial de teste.');
+  token = token?.trim();
+  if (!token || !/^(?:TEST-|APP_USR-)[A-Za-z0-9-]+$/.test(token)) {
+    throw new Error('Copie o Access Token na aba Teste do Mercado Pago.');
+  }
   const pedidos = new Map();
   const creditados = new Set();
   const saldos = new Map();
@@ -78,7 +81,7 @@ export function criarRecargaTeste({ token, requisitar }) {
 export async function testarRecargaSimulada() {
   let pedido;
   const recarga = criarRecargaTeste({
-    token: 'TEST-MOCK',
+    token: 'APP_USR-MOCK',
     async requisitar(url, opcoes) {
       if (opcoes.method === 'POST') {
         assert.equal(opcoes.headers['X-Idempotency-Key'], 'recarga-001');
