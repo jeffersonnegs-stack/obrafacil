@@ -56,6 +56,7 @@
   <div class="sel-logo"><img src="assets/icons/icon-192.png" width="192" height="192" alt="Obra Fácil"></div>
   <div class="sel-slogan">Gestão Inteligente</div>
   <p class="sel-pergunta">Como podemos te ajudar hoje?</p>
+  <button type="button" id="atalho-instalar" hidden style="margin:0 0 16px;padding:10px 16px;border:1px solid #fff;border-radius:8px;background:transparent;color:#fff;font:inherit;cursor:pointer">Instalar app</button>
   <div class="sel-cards">
     <div class="sel-card" onclick="App.irParaCliente()" role="button" tabindex="0">
       <span class="sel-icone">🏠</span>
@@ -386,44 +387,82 @@
     <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;line-height:1.5">
       Acesse mais rápido direto da tela inicial do seu celular — sem precisar abrir o navegador.
     </div>
+    <div id="instrucoes-instalar" role="status" hidden style="font-size:13px;line-height:1.5;margin-bottom:12px">
+      <div><strong>Android:</strong> no Chrome, toque em ⋮ e escolha Instalar app ou Adicionar à tela inicial.</div>
+      <div><strong>iPhone:</strong> no Safari, toque em Compartilhar e escolha Adicionar à Tela de Início.</div>
+    </div>
     <div style="display:flex;gap:10px">
-      <button id="btn-instalar" style="flex:1;padding:10px;background:#ff8c00;color:#fff;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">
+      <button id="btn-instalar" type="button" style="flex:1;padding:10px;background:#ff8c00;color:#fff;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">
         Instalar agora
       </button>
-      <button onclick="dispensarInstall()" style="padding:10px 16px;background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer">
+      <button type="button" id="fechar-instalar" style="padding:10px 16px;background:transparent;color:#94a3b8;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer">
         Agora não
       </button>
     </div>
   </div>
 </div>
   <script>
-let _installPrompt = null;
+(() => {
+  let convite = null;
+  const banner = document.getElementById('banner-instalar');
+  const atalho = document.getElementById('atalho-instalar');
+  const instrucoes = document.getElementById('instrucoes-instalar');
+  const instalar = document.getElementById('btn-instalar');
+  const instalado = () => navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  _installPrompt = e;
-  // Mostra o banner após 10 segundos
-  setTimeout(() => {
-    if (!localStorage.getItem('installDispensado')) {
-      document.getElementById('banner-instalar').style.display = 'block';
+  atalho.hidden = instalado();
+
+  window.addEventListener('beforeinstallprompt', evento => {
+    evento.preventDefault();
+    convite = evento;
+    instalar.hidden = false;
+    instrucoes.hidden = true;
+    setTimeout(() => {
+      if (instalado() || convite !== evento) return;
+      try {
+        if (localStorage.getItem('installDispensado')) return;
+      } catch {}
+      banner.style.display = 'block';
+    }, 10000);
+  });
+
+  atalho.addEventListener('click', () => {
+    banner.style.display = 'block';
+    if (!convite) {
+      instrucoes.hidden = false;
+      instalar.hidden = true;
     }
-  }, 10000)
-});
+  });
 
-document.getElementById('btn-instalar').addEventListener('click', async () => {
-  if (!_installPrompt) return;
-  _installPrompt.prompt();
-  const resultado = await _installPrompt.userChoice;
-  if (resultado.outcome === 'accepted') {
-    document.getElementById('banner-instalar').style.display = 'none';
-  }
-  _installPrompt = null;
-});
+  instalar.addEventListener('click', async () => {
+    if (convite) {
+      const evento = convite;
+      convite = null;
+      try {
+        await evento.prompt();
+        const escolha = await evento.userChoice;
+        if (escolha.outcome === 'accepted') {
+          banner.style.display = 'none';
+          return;
+        }
+      } catch {}
+    }
+    instrucoes.hidden = false;
+    instalar.hidden = true;
+  });
 
-function dispensarInstall() {
-  document.getElementById('banner-instalar').style.display = 'none';
-  localStorage.setItem('installDispensado', '1');
-}
+  document.getElementById('fechar-instalar').addEventListener('click', () => {
+    banner.style.display = 'none';
+    try { localStorage.setItem('installDispensado', '1'); } catch {}
+  });
+
+  window.addEventListener('appinstalled', () => {
+    convite = null;
+    atalho.hidden = true;
+    banner.style.display = 'none';
+  });
+})();
 </script>
 
 </body>
