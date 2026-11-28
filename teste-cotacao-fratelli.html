@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cotação de materiais | Obra Fácil</title>
+<style>
+body{margin:0;background:#eef2f5;color:#0b1f33;font:16px system-ui}main{max-width:34rem;margin:auto;padding:1rem}section,form{background:white;border-radius:12px;padding:1rem;margin:1rem 0}label{display:block;margin:.7rem 0}input,textarea,button{font:inherit}input,textarea{display:block;box-sizing:border-box;width:100%;padding:.6rem;border:1px solid #687787;border-radius:6px}button{background:#0b1f33;color:white;border:0;border-radius:6px;padding:.7rem 1rem}small{color:#45586a}
+</style>
+<main>
+<h1>Cotar materiais</h1>
+<p>Fratelli Ferro e Aço · Lajes e ferragens</p>
+<p><small>Simulação local. Use dados fictícios.</small></p>
+<form id="pedido">
+<label>Bairro <input name="bairro" required maxlength="80"></label>
+<label>Lista de materiais <textarea name="itens" required maxlength="1000" placeholder="Ex.: 20 m² de laje e 12 barras de ferragem"></textarea></label>
+<button>Gerar cotação</button>
+</form>
+<section id="cotacao" hidden>
+<h2>Cotação <span id="codigo"></span></h2>
+<p id="resumo"></p>
+<form id="proposta">
+<label>Materiais (R$) <input name="materiais" type="number" step="0.01" min="0.01" max="1000000" required></label>
+<label>Frete (R$) <input name="frete" type="number" step="0.01" min="0" max="1000000" required></label>
+<label>Prazo de entrega <input name="prazo" required maxlength="80"></label>
+<button>Registrar proposta simulada</button>
+</form>
+<p id="total" role="status"></p>
+<button type="button" id="confirmar" hidden>Confirmar compra simulada</button>
+<p id="comissao" role="status"></p>
+</section>
+</main>
+<script>
+const pedido = document.querySelector('#pedido');
+const proposta = document.querySelector('#proposta');
+const confirmar = document.querySelector('#confirmar');
+const total = document.querySelector('#total');
+const comissao = document.querySelector('#comissao');
+const moeda = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL'});
+let valorMateriais;
+let confirmada = false;
+pedido.addEventListener('submit', evento => {
+  evento.preventDefault();
+  const dados = new FormData(pedido);
+  document.querySelector('#codigo').textContent = 'OF-' + Date.now().toString(36).toUpperCase();
+  document.querySelector('#resumo').textContent = dados.get('bairro') + ' · ' + dados.get('itens');
+  document.querySelector('#cotacao').hidden = false;
+  proposta.reset();
+  proposta.hidden = false;
+  confirmar.hidden = true;
+  total.textContent = '';
+  comissao.textContent = '';
+  confirmada = false;
+});
+proposta.addEventListener('submit', evento => {
+  evento.preventDefault();
+  if (confirmada) return;
+  const dados = new FormData(proposta);
+  valorMateriais = Math.round(Number(dados.get('materiais')) * 100);
+  const frete = Math.round(Number(dados.get('frete')) * 100);
+  total.textContent = 'Total com frete: ' + moeda.format((valorMateriais + frete) / 100)
+    + ' · Entrega: ' + dados.get('prazo');
+  confirmar.hidden = false;
+});
+confirmar.addEventListener('click', () => {
+  if (confirmada) return;
+  confirmada = true;
+  proposta.hidden = true;
+  confirmar.hidden = true;
+  comissao.textContent = '1 compra confirmada. Comissão simulada de 3% sobre os materiais: '
+    + moeda.format(Math.round(valorMateriais * 0.03) / 100);
+});
+</script>
+</html>
