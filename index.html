@@ -15,12 +15,12 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jeffersonnegs-stack.github.io/obrafacil-app/">
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="manifest" href="manifest.json?v=abertura-1">
+  <link rel="apple-touch-icon" href="assets/icons/centered-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/app.css?v=mobile-2">
+  <link rel="stylesheet" href="css/app.css?v=abertura-1">
 
   <title>ObraFácil</title>
 </head>
@@ -30,6 +30,17 @@
 <div id="banner-offline">
   📵 Sem conexão com a internet
 </div>
+
+<dialog id="abertura" aria-label="Boas-vindas ao Obra Fácil">
+  <div class="abertura-conteudo">
+    <img src="assets/icons/icon-192.png" width="192" height="192" alt="Obra Fácil">
+    <p class="abertura-frase">Sua obra começa aqui.</p>
+    <p class="abertura-frase" hidden>Encontre profissionais da sua região.</p>
+    <p class="abertura-frase" hidden>É profissional? Encontre novos serviços.</p>
+    <button type="button" class="abertura-pular">Pular</button>
+  </div>
+</dialog>
+<script src="js/abertura.js"></script>
 
 <!-- ── Loading inicial ─────────────────────────────────────── -->
 <div id="loading-inicial">
@@ -42,7 +53,7 @@
      TELA 1 — SELEÇÃO
 ══════════════════════════════════════════════════════════ -->
 <div id="tela-selecao">
-  <div class="sel-logo">ObraFácil</div>
+  <div class="sel-logo"><img src="assets/icons/icon-192.png" width="192" height="192" alt="Obra Fácil"></div>
   <div class="sel-slogan">Gestão Inteligente</div>
   <p class="sel-pergunta">Como podemos te ajudar hoje?</p>
   <div class="sel-cards">

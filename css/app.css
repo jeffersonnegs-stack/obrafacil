@@ -413,3 +413,53 @@ html, body {
   .form-group input, .form-group select, .form-group textarea,
   .login-input, .select-input { font-size: 16px; }
 }
+
+/* Abertura do app */
+#abertura {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  border: 0;
+  padding: 16px;
+  background: var(--azul);
+  color: #fff;
+}
+#abertura[open] { display: grid; place-items: center; }
+.abertura-conteudo { width: min(100%, 420px); text-align: center; }
+.abertura-conteudo img,
+.sel-logo img {
+  display: block;
+  width: min(132px, 38vw, 33vh);
+  height: auto;
+  margin-inline: auto;
+  object-fit: contain;
+}
+.abertura-frase {
+  display: grid;
+  place-items: center;
+  min-height: 3em;
+  margin: 12px 0;
+  font-size: clamp(18px, 5vw, 24px);
+  font-weight: 700;
+  animation: abertura-entrada .22s ease-out;
+}
+.abertura-frase[hidden] { display: none; }
+.abertura-pular {
+  padding: 10px 20px;
+  min-height: 44px;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+@keyframes abertura-entrada { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .abertura-frase { animation: none; }
+}
