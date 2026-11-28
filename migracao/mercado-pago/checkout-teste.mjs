@@ -42,7 +42,13 @@ export function criarRecargaTeste({ token, requisitar }) {
         throw new Error('Pedido de teste não reconhecido.');
       }
       pedidos.set(referencia, { id: pedido.id, profissional, valor, creditos });
-      return pedido.id;
+      const checkout = new URL(pedido.checkout_url);
+      if (checkout.origin !== 'https://www.mercadopago.com.br' ||
+          checkout.pathname !== '/checkout/v1/redirect' ||
+          checkout.searchParams.get('order_id') !== pedido.id) {
+        throw new Error('Endereço do checkout de teste inválido.');
+      }
+      return checkout.href;
     },
 
     async conciliar(referencia) {
@@ -74,14 +80,16 @@ export async function testarRecargaSimulada() {
       if (opcoes.method === 'POST') {
         assert.equal(opcoes.headers['X-Idempotency-Key'], 'recarga-001');
         const dados = JSON.parse(opcoes.body);
-        pedido = { ...dados, id: 'ORDTST0001', currency: 'BRL', status: 'created' };
+        pedido = { ...dados, id: 'ORDTST0001', currency: 'BRL', status: 'created',
+          checkout_url: 'https://www.mercadopago.com.br/checkout/v1/redirect?order_id=ORDTST0001' };
       } else {
         assert.equal(url, API + '/ORDTST0001');
       }
       return { ok: true, json: async () => ({ ...pedido }) };
     },
   });
-  await recarga.criar({ referencia: 'recarga-001', profissional: 'teste', centavos: 3000, creditos: 2 });
+  const link = await recarga.criar({ referencia: 'recarga-001', profissional: 'teste', centavos: 3000, creditos: 2 });
+  assert.equal(new URL(link).searchParams.get('order_id'), 'ORDTST0001');
   assert.equal(await recarga.conciliar('recarga-001'), false);
   assert.equal(recarga.saldo('teste'), 0);
   pedido.status = 'processed';
