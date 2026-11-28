@@ -11,12 +11,13 @@
     if (!abertura.open) return;
   }
 
+  const duracaoFrase = 3000;
   const frases = [...abertura.querySelectorAll('.abertura-frase')];
   const intervalos = frases.slice(1).map((frase, indice) => setTimeout(() => {
     frases[indice].hidden = true;
     frase.hidden = false;
-  }, (indice + 1) * 1100));
-  intervalos.push(setTimeout(() => abertura.close(), 3300));
+  }, (indice + 1) * duracaoFrase));
+  intervalos.push(setTimeout(() => abertura.close(), frases.length * duracaoFrase));
   abertura.querySelector('.abertura-pular').addEventListener('click', () => abertura.close());
   abertura.addEventListener('close', () => intervalos.forEach(clearTimeout), { once: true });
 })();
