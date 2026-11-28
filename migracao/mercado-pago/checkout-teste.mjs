@@ -61,6 +61,9 @@ export function criarRecargaTeste({ token, requisitar }) {
       }
       if (pedido.status !== 'processed' || pedido.status_detail !== 'accredited' ||
           creditados.has(esperado.id)) return false;
+      if (pedido.total_paid_amount !== esperado.valor) {
+        throw new Error('Valor pago não confere.');
+      }
       creditados.add(esperado.id);
       saldos.set(esperado.profissional, (saldos.get(esperado.profissional) || 0) + esperado.creditos);
       return true;
@@ -97,6 +100,9 @@ export async function testarRecargaSimulada() {
   pedido.total_amount = '31.00';
   await assert.rejects(recarga.conciliar('recarga-001'), /não conferem/);
   pedido.total_amount = '30.00';
+  pedido.total_paid_amount = '29.00';
+  await assert.rejects(recarga.conciliar('recarga-001'), /Valor pago não confere/);
+  pedido.total_paid_amount = '30.00';
   const conciliacoes = await Promise.all([recarga.conciliar('recarga-001'), recarga.conciliar('recarga-001')]);
   assert.deepEqual(conciliacoes, [true, false]);
   assert.equal(recarga.saldo('teste'), 2);
